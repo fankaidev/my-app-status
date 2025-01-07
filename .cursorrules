@@ -12,7 +12,8 @@ For any user request, you should
 USER might use below shortcuts for fast reply:
 * 1 - agree and go ahread
 * 2 - disagree and try to find another approach
-* 3 - start work on next task
+* 3 - commit changes for current task
+* 4 - start work on next task
 
 ## Stories
 
@@ -42,7 +43,7 @@ Each task should be highly focused. For example, for a request like "refactor th
 New tasks could be added when story was first created, or when further steps are identified.
 
 You should finish tasks one by one, and all proposed code changes should be limited to current task only.
-Once the task is finished, you should create a new git commit for this task.
+Once the task is finished, you should commit current changes: `git add . && git commit -m "xxx" `
 Only start working on next task after user confirmation.
 
 Use todo markers to indicate the progress, e.g.
