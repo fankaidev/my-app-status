@@ -53,3 +53,13 @@ When working with Cloudflare Pages and Next.js in edge runtime:
   stmt = stmt.bind(...params);
   await stmt.all();
   ```
+
+- Always use wrangler command to update D1 database, even for local development:
+  ```bash
+  # ❌ Wrong: directly using sqlite3
+  sqlite3 .wrangler/state/v3/d1/.../database.sqlite < migrations/my_migration.sql
+
+  # ✅ Correct: using wrangler
+  npx wrangler d1 execute <database-name> --local --file=migrations/my_migration.sql
+  ```
+  This ensures consistency between local and production environments, and helps catch potential issues early.
