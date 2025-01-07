@@ -1,29 +1,23 @@
+interface Project {
+    id: string
+    name: string
+    status: 'operational' | 'outage'
+}
+
 interface ProjectCardProps {
-    project: {
-        id: string
-        name: string
-        status: 'operational' | 'outage'
-    }
+    project: Project
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+    const statusColor = project.status === 'operational' ? 'bg-green-500' : 'bg-red-500'
+
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">{project.name}</h2>
-            <div className="flex items-center gap-3">
-                <div
-                    className={`w-3 h-3 rounded-full ${project.status === 'operational'
-                            ? 'bg-green-500 animate-pulse'
-                            : 'bg-red-500'
-                        }`}
-                />
-                <span className={`capitalize font-medium ${project.status === 'operational'
-                        ? 'text-green-700'
-                        : 'text-red-700'
-                    }`}>
-                    {project.status}
-                </span>
+        <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
+                <div className={`w-3 h-3 rounded-full ${statusColor}`} />
             </div>
+            <p className="text-sm text-gray-600 capitalize">{project.status}</p>
         </div>
     )
 }

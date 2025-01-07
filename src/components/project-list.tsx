@@ -19,7 +19,7 @@ export function ProjectList() {
                 if (!res.ok) {
                     throw new Error('Failed to fetch projects')
                 }
-                return res.json()
+                return res.json() as Promise<Project[]>
             })
             .then((data: Project[]) => {
                 setProjects(data)
