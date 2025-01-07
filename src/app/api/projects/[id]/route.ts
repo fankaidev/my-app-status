@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { deleteProject, getDB, getProject, restoreProject } from "@/db";
 import { ApiError, ApiErrors } from "@/lib/api-error";
 
+export const runtime = "edge";
+
 interface RouteContext {
   params: { id: string };
 }
