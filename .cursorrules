@@ -10,11 +10,18 @@ For any user request, you should
 * DO NOT make code changes unless the design document is accepted by USER.
 * ask USER to verify changes before trying to commit changes
 
+When user ask to investigate an issue, you should
+* try to figure out the reason behind the issue
+* use Search Engine or Web Browser tool when necessary
+* focus on latest changes, which is most likely responsible for the issue
+* propose solutions
+* don't rush into code changes before USER approve the solution, unlesss it's trivial fix
+
 USER might use below shortcuts for fast reply:
-* 1 - agree and go ahread
-* 2 - disagree and try to find another approach
-* 3 - commit changes for current task
-* 4 - start work on next task
+* a - agree and go ahread
+* b - disagree and try to find another approach
+* c - commit changes for current task
+* d - start work on next task
 
 ## Stories
 
