@@ -8,6 +8,7 @@ For any user request, you should
 * analyze user request based on current documents and codebase
 * prepare design document for current request
 * DO NOT make code changes unless the design document is accepted by USER.
+* ask USER to verify changes before trying to commit changes
 
 USER might use below shortcuts for fast reply:
 * 1 - agree and go ahread
@@ -37,7 +38,7 @@ Useful information about the story development should be recorded in the story d
 
 ## Tasks
 
-Each story could be split into multiple tasks, and you should use the story file to record progress of each task.
+Each story could be split into one or more tasks, and you should use the story document to record progress of each task.
 
 Each task should be highly focused. For example, for a request like "refactor this method to make it faster and cleaner", you should split to two tasks, with the first one focused on performance only and the second one doing cosmetic changes.
 
@@ -59,7 +60,7 @@ Use todo markers to indicate the progress, e.g.
 [X] Task 1
 [ ] Task 2
 ```
-Remember to update the progress of the task in the story file when it is finished.
+Remember to update the progress of the task in the story file when it is finished, and feel free to adjust remaining tasks when needed.
 
 The goal is to help you maintain a big picture as well as the progress of the story. Always refer to the story file when you plan the next step.
 
