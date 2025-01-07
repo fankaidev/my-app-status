@@ -20,10 +20,14 @@ A modern status page application built with Next.js 14 and deployed on Cloudflar
 
 ## API Endpoints
 
-- `GET /api/projects` - List all projects
+The following API endpoints are available:
+
+- `GET /api/projects` - List all projects with their latest status
 - `GET /api/projects/[id]` - Get specific project details
-- `POST /api/projects/[id]/status` - Update project status
-- `POST /api/projects/status` - Update project status by id or name
+- `POST /api/projects/[id]/status` - Update project status by id
+- `POST /api/projects/status` - Update project status by id or name (will create new project if name doesn't exist)
+
+For detailed API documentation including request/response formats, parameters, and error handling, see [API Documentation](docs/api.md).
 
 ## Changelog
 1. Create project skeleton with basic status display
