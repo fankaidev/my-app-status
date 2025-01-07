@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { ApiErrors, handleApiError } from '@/lib/api-error'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
@@ -15,32 +16,37 @@ const publicRoutes = [
 ]
 
 export async function middleware(request: NextRequest) {
-    // Check if the route is public
-    const isPublicRoute = publicRoutes.some(route =>
-        request.nextUrl.pathname === route ||
-        request.nextUrl.pathname.startsWith('/api/auth/')
-    )
+    try {
+        // Check if the route is public
+        const isPublicRoute = publicRoutes.some(route =>
+            request.nextUrl.pathname === route ||
+            request.nextUrl.pathname.startsWith('/api/auth/')
+        )
 
-    if (isPublicRoute) {
-        return NextResponse.next()
-    }
-
-    // Check authentication
-    const session = await auth()
-    if (!session) {
-        // API routes return 401
-        if (request.nextUrl.pathname.startsWith('/api/')) {
-            return new NextResponse(
-                JSON.stringify({ error: 'Authentication required' }),
-                { status: 401, headers: { 'Content-Type': 'application/json' } }
-            )
+        if (isPublicRoute) {
+            return NextResponse.next()
         }
 
-        // Other routes redirect to signin
-        return NextResponse.redirect(new URL('/api/auth/signin', request.url))
-    }
+        // Check authentication
+        const session = await auth()
+        if (!session) {
+            // API routes return 401
+            if (request.nextUrl.pathname.startsWith('/api/')) {
+                throw ApiErrors.Unauthorized()
+            }
 
-    return NextResponse.next()
+            // Other routes redirect to signin
+            return NextResponse.redirect(new URL('/api/auth/signin', request.url))
+        }
+
+        return NextResponse.next()
+    } catch (error) {
+        // Only handle errors for API routes
+        if (request.nextUrl.pathname.startsWith('/api/')) {
+            return handleApiError(error)
+        }
+        throw error
+    }
 }
 
 // Configure which routes to run middleware on
