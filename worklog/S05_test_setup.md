@@ -59,7 +59,8 @@
     - Add status update tests
     - Add authentication tests
 
-[ ] Task 4: Setup CI
-    - Create GitHub Actions workflow
-    - Configure test environment in CI
-    - Add test status badge
+[X] Task 4: Refactor tests to use local DB
+    - Setup local SQLite database for testing
+    - Update test environment to use local DB
+    - Add database cleanup between tests
+    - Update test cases to verify database state

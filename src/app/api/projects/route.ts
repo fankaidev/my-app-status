@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const db = await getDB();
     const projects = await getProjects(db);

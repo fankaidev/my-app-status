@@ -1,27 +1,32 @@
-import { handlers } from "@/tests/mocks/handlers";
+import { setTestDb } from "@/db";
 import * as matchers from "@testing-library/jest-dom/matchers";
-import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, expect } from "vitest";
+import { afterEach, beforeEach, expect } from "vitest";
+import { createTestDb } from "./utils/test-db";
 
-// Extend expect with jest-dom matchers
+// Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);
 
-// Setup MSW server for API mocking
-export const server = setupServer(...handlers);
+// Set up test database
+const testDb = createTestDb();
+setTestDb(testDb);
 
-beforeAll(() => {
-  // Start the interception
-  server.listen({
-    onUnhandledRequest: "error",
-  });
+// Clean up after each test
+afterEach(async () => {
+  // Delete status history first due to foreign key constraint
+  await testDb.prepare("DELETE FROM status_history").bind().run();
+  await testDb.prepare("DELETE FROM projects").bind().run();
 });
 
-afterEach(() => {
-  // Reset handlers between tests
-  server.resetHandlers();
-});
-
-afterAll(() => {
-  // Clean up
-  server.close();
+// Seed test data before each test
+beforeEach(async () => {
+  const now = Date.now();
+  await testDb
+    .prepare(
+      `
+    INSERT INTO projects (id, name, created_at, updated_at)
+    VALUES ('test-project-1', 'Test Project', ?, ?);
+  `
+    )
+    .bind(now, now)
+    .run();
 });

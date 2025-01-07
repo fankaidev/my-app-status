@@ -62,6 +62,100 @@ Remember to update the progress of the task in the story file when it is finishe
 
 The goal is to help you maintain a big picture as well as the progress of the story. Always refer to the story file when you plan the next step.
 
+## Testing
+
+Testing is a crucial part of our projects.
+
+### Test Organization
+- Prepare integration tests for every user requirement, usually test with api routes only
+- Place all integration tests in `src/tests` directory
+- Use subdirectories to mirror source code structure
+- Helper functions and mocks go in `src/tests/utils`
+- Don't use mocks unless required by USER
+
+### Database Testing
+Use a local sqlite database for testing, so its behavior will exactly like d1.
+
+Test Data
+   - Use realistic test data that matches schema
+   - Reset test data between tests
+   - Avoid sharing mutable state between tests
+
+
+### API Testing
+1. Route Tests
+   - Test all HTTP methods (GET, POST, etc.)
+   - Verify response status codes
+   - Check response body structure
+   - Test error conditions and edge cases
+
+### Best Practices
+1. Test Setup
+   ```typescript
+   describe('Feature', () => {
+     beforeEach(() => {
+       // Reset mocks and test state
+     });
+
+     afterEach(() => {
+       // Clean up if necessary
+     });
+   });
+   ```
+
+2. Test Structure
+   ```typescript
+   it('should [expected behavior] when [condition]', async () => {
+     // Arrange - setup test data and conditions
+
+     // Act - perform the action being tested
+
+     // Assert - verify the results
+   });
+   ```
+
+3. Mocking Guidelines
+   - Create type-safe mocks that implement full interfaces
+   - Keep mocks simple but complete
+   - Document mock behavior
+   - Avoid complex mock logic
+
+4. Error Testing
+   - Test both success and failure paths
+   - Verify error messages and status codes
+   - Test edge cases and invalid inputs
+
+### Test Running
+- Run tests with `npm test`
+- Use `npm run test:watch` for development
+- All tests must pass before merging
+- Coverage requirements:
+  - Minimum 80% overall coverage
+  - 100% coverage for critical paths
+  - 100% coverage for error handling
+
+### Example
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { MockD1Database } from '../helpers/db-mock';
+
+describe('Database Operations', () => {
+  let mockDb: MockD1Database;
+
+  beforeEach(() => {
+    mockDb = new MockD1Database();
+    mockDb.setTestData([/* test data */]);
+  });
+
+  it('should return project when exists', async () => {
+    const result = await getProject(mockDb, '1');
+    expect(result).toMatchObject({
+      id: '1',
+      name: 'Test Project'
+    });
+  });
+});
+
 ## Lessons
 
 During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `./worklog/lessons.md` so you will not make the same mistake again.

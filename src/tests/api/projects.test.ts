@@ -1,9 +1,12 @@
+import { POST } from "@/app/api/projects/[id]/status/route";
+import { GET } from "@/app/api/projects/route";
 import type { Project } from "@/types/db";
 import { describe, expect, it } from "vitest";
 
 describe("Projects API", () => {
   it("should list projects", async () => {
-    const response = await fetch("http://localhost/api/projects");
+    const req = new Request("http://localhost/api/projects");
+    const response = await GET(req);
     const data = (await response.json()) as Project[];
 
     expect(response.status).toBe(200);
@@ -14,7 +17,7 @@ describe("Projects API", () => {
   });
 
   it("should update project status", async () => {
-    const response = await fetch("http://localhost/api/projects/test-project-1/status", {
+    const req = new Request("http://localhost/api/projects/test-project-1/status", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,13 +28,14 @@ describe("Projects API", () => {
       }),
     });
 
+    const response = await POST(req, { params: { id: "test-project-1" } } as any);
     expect(response.status).toBe(200);
-    const data = (await response.json()) as { success: boolean };
+    const data = await response.json();
     expect(data).toEqual({ success: true });
   });
 
   it("should return 404 for non-existent project", async () => {
-    const response = await fetch("http://localhost/api/projects/non-existent/status", {
+    const req = new Request("http://localhost/api/projects/non-existent/status", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,6 +46,7 @@ describe("Projects API", () => {
       }),
     });
 
+    const response = await POST(req, { params: { id: "non-existent" } } as any);
     expect(response.status).toBe(404);
   });
 });

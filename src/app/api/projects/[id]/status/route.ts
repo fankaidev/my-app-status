@@ -39,18 +39,14 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     await updateProjectStatus(db, params.id, status, message);
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: params.id,
-        status,
-        message,
-      },
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to update project status:", error);
     if (error instanceof ApiError) {
       return NextResponse.json({ error: { message: error.message } }, { status: error.statusCode });
+    }
+    if (error instanceof Error && error.message === "Project not found") {
+      return NextResponse.json({ error: { message: "Project not found" } }, { status: 404 });
     }
     return NextResponse.json(
       { error: { message: error instanceof Error ? error.message : "An unexpected error occurred" } },
