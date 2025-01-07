@@ -130,3 +130,85 @@ export async function getProjectStatusHistory(
   const { results } = await stmt.all<StatusHistory>();
   return results || [];
 }
+
+/**
+ * Find a project by name
+ */
+export async function findProjectByName(db: D1Database, name: string): Promise<ProjectWithStatus | null> {
+  const stmt = db
+    .prepare(
+      `
+        SELECT
+            p.*,
+            sh.status,
+            sh.message,
+            sh.created_at as status_updated_at
+        FROM projects p
+        LEFT JOIN (
+            SELECT
+                project_id,
+                status,
+                message,
+                created_at
+            FROM status_history sh1
+            WHERE created_at = (
+                SELECT MAX(created_at)
+                FROM status_history sh2
+                WHERE sh2.project_id = sh1.project_id
+            )
+        ) sh ON p.id = sh.project_id
+        WHERE p.name = ?
+    `
+    )
+    .bind(name);
+
+  const result = await stmt.first<ProjectWithStatus>();
+  return result || null;
+}
+
+/**
+ * Create a new project
+ */
+export async function createProject(db: D1Database, name: string): Promise<string> {
+  const id = crypto.randomUUID();
+  const now = Math.floor(Date.now() / 1000);
+
+  await db
+    .prepare(
+      `
+        INSERT INTO projects (id, name, created_at, updated_at)
+        VALUES (?, ?, ?, ?)
+    `
+    )
+    .bind(id, name, now, now)
+    .run();
+
+  return id;
+}
+
+/**
+ * Update project status by name
+ * If project doesn't exist, create it first
+ */
+export async function updateProjectStatusByName(
+  db: D1Database,
+  name: string,
+  status: StatusHistory["status"],
+  message?: string
+): Promise<string> {
+  // First try to find project by name
+  let project = await findProjectByName(db, name);
+  let projectId: string;
+
+  if (!project) {
+    // Create new project if not found
+    projectId = await createProject(db, name);
+  } else {
+    projectId = project.id;
+  }
+
+  // Update status
+  await updateProjectStatus(db, projectId, status, message);
+
+  return projectId;
+}

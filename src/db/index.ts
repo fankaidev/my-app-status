@@ -1,5 +1,13 @@
 import { D1Database } from "@cloudflare/workers-types";
-import { getProject, getProjects, getProjectStatusHistory, updateProjectStatus } from "./operations";
+import {
+  createProject,
+  findProjectByName,
+  getProject,
+  getProjects,
+  getProjectStatusHistory,
+  updateProjectStatus,
+  updateProjectStatusByName,
+} from "./operations";
 
 // Add test database support
 let testDb: D1Database | null = null;
@@ -20,4 +28,12 @@ export async function getDB(): Promise<D1Database> {
 }
 
 // Re-export database operations
-export { getProject, getProjects, getProjectStatusHistory, updateProjectStatus };
+export {
+  createProject,
+  findProjectByName,
+  getProject,
+  getProjects,
+  getProjectStatusHistory,
+  updateProjectStatus,
+  updateProjectStatusByName,
+};

@@ -23,6 +23,7 @@ A modern status page application built with Next.js 14 and deployed on Cloudflar
 - `GET /api/projects` - List all projects
 - `GET /api/projects/[id]` - Get specific project details
 - `POST /api/projects/[id]/status` - Update project status
+- `POST /api/projects/status` - Update project status by id or name
 
 ## Changelog
 1. Create project skeleton with basic status display
@@ -31,3 +32,4 @@ A modern status page application built with Next.js 14 and deployed on Cloudflar
 4. Setup D1 database for project status
 5. Setup test framework and write integration tests
 6. Display last update time for projects
+7. Support updating project status by name
