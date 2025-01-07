@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { getDB, updateProjectStatus, updateProjectStatusByName } from "@/db";
 import { ApiError, ApiErrors } from "@/lib/api-error";
+import { extractTokenFromHeader, validateToken } from "@/lib/token-utils";
 import { ServiceStatus } from "@/types/db";
 
 export const runtime = "edge";
@@ -14,8 +15,26 @@ interface UpdateStatusRequest {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
+    // Try token auth first
+    const authHeader = request.headers.get("Authorization");
+    let userId: string | null = null;
+
+    if (authHeader) {
+      const token = extractTokenFromHeader(authHeader);
+      if (token) {
+        const db = await getDB();
+        userId = await validateToken(db, token);
+      }
+    }
+
+    // If token auth failed, try session auth
+    if (!userId) {
+      const session = await auth();
+      userId = session?.user?.email ?? null;
+    }
+
+    // If both auth methods failed, return unauthorized
+    if (!userId) {
       throw ApiErrors.Unauthorized();
     }
 
@@ -33,7 +52,7 @@ export async function POST(request: Request) {
 
     if (body.id) {
       await updateProjectStatus(db, body.id, body.status, body.message, {
-        owner_id: session.user.email,
+        owner_id: userId,
       });
       projectId = body.id;
     } else if (body.name) {
@@ -42,7 +61,7 @@ export async function POST(request: Request) {
         body.name,
         body.status,
         body.message,
-        session.user.email
+        userId
       );
     }
 

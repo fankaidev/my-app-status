@@ -72,7 +72,7 @@ CREATE INDEX idx_user_tokens_token ON user_tokens(token);
 [X] Create database migration for user_tokens table
 [X] Add token generation and validation utilities
 [X] Add token management API endpoints
-[ ] Update status update API to support token auth
+[X] Update status update API to support token auth
 [ ] Add token management UI components
 [ ] Add token management to admin panel
 [ ] Add tests for token management
