@@ -47,10 +47,10 @@
 [X] Task 1: Add deleted column to projects table
     - Created migration file 0001_add_deleted_flag.sql
     - Added deleted column with default value false
-[ ] Task 2: Create admin page with protected route
-    - Create src/app/admin/page.tsx
-    - Add authentication check using middleware
-    - Create ProjectAdminList component
+[X] Task 2: Create admin page with protected route
+    - Created src/app/admin/page.tsx with authentication check
+    - Created src/components/project-admin-list.tsx for project management
+    - Updated middleware to protect admin routes
 [ ] Task 3: Implement delete API endpoint
 [ ] Task 4: Update project list to filter deleted items
 [ ] Task 5: Add tests for new functionality
