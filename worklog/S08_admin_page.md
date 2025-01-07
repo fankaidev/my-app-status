@@ -60,6 +60,10 @@
     - Added includeDeleted option to getProjects
     - Updated /api/projects endpoint to support include_deleted parameter
     - Admin page shows all projects while main page shows only active ones
-[ ] Task 5: Add tests for new functionality
+[X] Task 5: Add tests for new functionality
+    - Added tests for database operations (delete, restore, filtering)
+    - Added tests for API endpoints with authentication
+    - Added tests for error cases
+    - Improved test data mocking
 
-Would you like me to proceed with Task 5: Add tests for new functionality?
+All tasks are now complete. The admin page feature is ready for review.

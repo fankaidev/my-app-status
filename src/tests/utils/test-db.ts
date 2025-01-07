@@ -6,12 +6,22 @@ import { resolve } from "path";
 export function createTestDb() {
   const db = new Database(":memory:");
 
-  // Read and execute migration file
-  const migration = readFileSync(resolve(process.cwd(), "migrations/0000_initial.sql"), "utf-8");
-  // Split migration into schema and data
-  const [schema] = migration.split("-- Initial data");
-  // Only execute schema
-  db.exec(schema);
+  // Read and execute migration files
+  const migrations = [
+    readFileSync(resolve(process.cwd(), "migrations/0000_initial.sql"), "utf-8"),
+    readFileSync(resolve(process.cwd(), "migrations/0001_add_deleted_flag.sql"), "utf-8"),
+  ];
+
+  // Execute each migration
+  for (const migration of migrations) {
+    // Split migration into schema and data if it contains initial data
+    if (migration.includes("-- Initial data")) {
+      const [schema] = migration.split("-- Initial data");
+      db.exec(schema);
+    } else {
+      db.exec(migration);
+    }
+  }
 
   // Create D1-like interface
   const testDb = {
@@ -26,7 +36,7 @@ export function createTestDb() {
             all: () => ({ results: boundStmt.all(...params) }),
           };
         },
-        all: () => ({ results: stmt.all() }),
+        all: <T>() => ({ results: stmt.all() as T[] }),
         first: () => stmt.get(),
         run: () => stmt.run(),
       };
@@ -50,16 +60,55 @@ export function cleanDb(db: any) {
 
 // Helper to seed test data
 export function seedTestData(db: any) {
-  const project = {
-    id: "test-project-1",
-    name: "Test Project 1",
+  const activeProject = {
+    id: "1",
+    name: "Active Project",
     created_at: Date.now(),
     updated_at: Date.now(),
+    deleted: 0,
+    status: "operational",
+    status_updated_at: Date.now(),
   };
 
-  db.prepare("INSERT INTO projects (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)")
-    .bind(project.id, project.name, project.created_at, project.updated_at)
+  const deletedProject = {
+    id: "2",
+    name: "Deleted Project",
+    created_at: Date.now(),
+    updated_at: Date.now(),
+    deleted: 1,
+    status: "operational",
+    status_updated_at: Date.now(),
+  };
+
+  // Insert project
+  db.prepare("INSERT INTO projects (id, name, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?)")
+    .bind(
+      activeProject.id,
+      activeProject.name,
+      activeProject.created_at,
+      activeProject.updated_at,
+      activeProject.deleted
+    )
     .run();
 
-  return { project };
+  db.prepare("INSERT INTO projects (id, name, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?)")
+    .bind(
+      deletedProject.id,
+      deletedProject.name,
+      deletedProject.created_at,
+      deletedProject.updated_at,
+      deletedProject.deleted
+    )
+    .run();
+
+  // Insert status history
+  db.prepare("INSERT INTO status_history (project_id, status, created_at) VALUES (?, ?, ?)")
+    .bind(activeProject.id, activeProject.status, activeProject.status_updated_at)
+    .run();
+
+  db.prepare("INSERT INTO status_history (project_id, status, created_at) VALUES (?, ?, ?)")
+    .bind(deletedProject.id, deletedProject.status, deletedProject.status_updated_at)
+    .run();
+
+  return { activeProject, deletedProject };
 }
