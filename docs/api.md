@@ -52,38 +52,7 @@ Returns details of a specific project.
 }
 ```
 
-### Update Project Status by ID
-
-```http
-POST /api/projects/{id}/status
-```
-
-Update status of a specific project by ID.
-
-#### Parameters
-
-| Name | Type | Description |
-|------|------|-------------|
-| `id` | string | Project ID |
-
-#### Request Body
-
-```typescript
-{
-  status: "operational" | "degraded" | "outage" | "maintenance" | "unknown";
-  message?: string;
-}
-```
-
-#### Response
-
-```typescript
-{
-  success: true;
-}
-```
-
-### Update Project Status by ID or Name
+### Update Project Status
 
 ```http
 POST /api/projects/status
