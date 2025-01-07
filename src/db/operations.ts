@@ -108,10 +108,11 @@ export async function updateProjectStatus(
   db: D1Database,
   projectId: string,
   status: StatusHistory["status"],
-  message?: string
+  message?: string,
+  options: { owner_id?: string } = {}
 ): Promise<void> {
-  // First check if project exists
-  const project = await getProject(db, projectId);
+  // First check if project exists and belongs to owner
+  const project = await getProject(db, projectId, { owner_id: options.owner_id });
   if (!project) {
     throw ApiErrors.NotFound("Project");
   }
@@ -240,10 +241,14 @@ export async function updateProjectStatusByName(
     projectId = await createProject(db, name, owner_id);
   } else {
     projectId = project.id;
+    // Check ownership if project exists
+    if (owner_id !== 'system' && project.owner_id !== owner_id) {
+      throw ApiErrors.Unauthorized();
+    }
   }
 
   // Update status
-  await updateProjectStatus(db, projectId, status, message);
+  await updateProjectStatus(db, projectId, status, message, { owner_id });
 
   return projectId;
 }
