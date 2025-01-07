@@ -1,3 +1,2 @@
 # Stories
-
-1. Sample Story
+1. Create project skeleton with basic status display
