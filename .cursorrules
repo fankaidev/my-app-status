@@ -32,7 +32,8 @@ Then create a story document(SD) in ./worklog folder, like "S01_proj_skeleton.md
 Useful information about the story development should be recorded in the story document:
 * user requirement
 * system design
-* tasks
+* test plan
+* task details
 
 ## Tasks
 
