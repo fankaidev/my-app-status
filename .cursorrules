@@ -78,6 +78,7 @@ Testing is a crucial part of our projects.
 
 ### Test Organization
 - Prepare integration tests for every user requirement, usually test with api routes only
+- Integration tests should only use public endpoints to act and verify
 - Place all integration tests in `src/tests` directory
 - Use subdirectories to mirror source code structure
 - Helper functions and mocks go in `src/tests/utils`
@@ -99,72 +100,12 @@ Test Data
    - Check response body structure
    - Test error conditions and edge cases
 
+
 ### Best Practices
-1. Test Setup
-   ```typescript
-   describe('Feature', () => {
-     beforeEach(() => {
-       // Reset mocks and test state
-     });
-
-     afterEach(() => {
-       // Clean up if necessary
-     });
-   });
-   ```
-
-2. Test Structure
-   ```typescript
-   it('should [expected behavior] when [condition]', async () => {
-     // Arrange - setup test data and conditions
-
-     // Act - perform the action being tested
-
-     // Assert - verify the results
-   });
-   ```
-
-3. Mocking Guidelines
-   - Create type-safe mocks that implement full interfaces
-   - Keep mocks simple but complete
-   - Document mock behavior
-   - Avoid complex mock logic
-
-4. Error Testing
-   - Test both success and failure paths
-   - Verify error messages and status codes
-   - Test edge cases and invalid inputs
-
-### Test Running
-- Run tests with `npm test`
-- Use `npm run test:watch` for development
-- All tests must pass before merging
-- Coverage requirements:
-  - Minimum 80% overall coverage
-  - 100% coverage for critical paths
-  - 100% coverage for error handling
-
-### Example
-```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MockD1Database } from '../helpers/db-mock';
-
-describe('Database Operations', () => {
-  let mockDb: MockD1Database;
-
-  beforeEach(() => {
-    mockDb = new MockD1Database();
-    mockDb.setTestData([/* test data */]);
-  });
-
-  it('should return project when exists', async () => {
-    const result = await getProject(mockDb, '1');
-    expect(result).toMatchObject({
-      id: '1',
-      name: 'Test Project'
-    });
-  });
-});
+- Use test database only for data preparation
+- Verify changes through public API endpoints
+- Test both success and error cases
+- Group related tests with describe blocks
 
 ## Lessons
 
