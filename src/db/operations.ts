@@ -212,3 +212,39 @@ export async function updateProjectStatusByName(
 
   return projectId;
 }
+
+/**
+ * Soft delete a project
+ */
+export async function deleteProject(db: D1Database, id: string): Promise<void> {
+  // Check if project exists
+  const project = await db.prepare("SELECT id FROM projects WHERE id = ?").bind(id).first();
+  if (!project) {
+    throw ApiErrors.NotFound("Project not found");
+  }
+
+  // Soft delete the project
+  await db.prepare("UPDATE projects SET deleted = 1 WHERE id = ?").bind(id).run();
+}
+
+/**
+ * Restore a deleted project
+ */
+export async function restoreProject(db: D1Database, id: string): Promise<void> {
+  // Check if project exists and is deleted
+  const project = await db
+    .prepare("SELECT id, deleted FROM projects WHERE id = ?")
+    .bind(id)
+    .first<{ id: string; deleted: number }>();
+
+  if (!project) {
+    throw ApiErrors.NotFound("Project not found");
+  }
+
+  if (!project.deleted) {
+    throw ApiErrors.BadRequest("Project is not deleted");
+  }
+
+  // Restore the project
+  await db.prepare("UPDATE projects SET deleted = 0 WHERE id = ?").bind(id).run();
+}

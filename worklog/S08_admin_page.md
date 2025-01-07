@@ -51,6 +51,9 @@
     - Created src/app/admin/page.tsx with authentication check
     - Created src/components/project-admin-list.tsx for project management
     - Updated middleware to protect admin routes
-[ ] Task 3: Implement delete API endpoint
+[X] Task 3: Implement delete API endpoint
+    - Created PUT /api/projects/[id]/delete endpoint
+    - Added authentication check
+    - Implemented soft delete functionality
 [ ] Task 4: Update project list to filter deleted items
 [ ] Task 5: Add tests for new functionality

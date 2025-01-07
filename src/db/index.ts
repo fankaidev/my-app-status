@@ -1,10 +1,12 @@
 import { D1Database } from "@cloudflare/workers-types";
 import {
   createProject,
+  deleteProject,
   findProjectByName,
   getProject,
   getProjects,
   getProjectStatusHistory,
+  restoreProject,
   updateProjectStatus,
   updateProjectStatusByName,
 } from "./operations";
@@ -30,10 +32,12 @@ export async function getDB(): Promise<D1Database> {
 // Re-export database operations
 export {
   createProject,
+  deleteProject,
   findProjectByName,
   getProject,
   getProjects,
   getProjectStatusHistory,
+  restoreProject,
   updateProjectStatus,
   updateProjectStatusByName,
 };
