@@ -11,18 +11,32 @@ interface Project {
 export function ProjectList() {
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         fetch('/api/projects')
-            .then(res => res.json())
-            .then(data => {
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Failed to fetch projects')
+                }
+                return res.json()
+            })
+            .then((data: Project[]) => {
                 setProjects(data)
+                setLoading(false)
+            })
+            .catch(err => {
+                setError(err.message)
                 setLoading(false)
             })
     }, [])
 
     if (loading) {
-        return <div>Loading...</div>
+        return <div className="text-center p-4">Loading projects...</div>
+    }
+
+    if (error) {
+        return <div className="text-center text-red-500 p-4">{error}</div>
     }
 
     return (
