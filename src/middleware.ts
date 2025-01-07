@@ -14,7 +14,7 @@ const publicRoutes = [
   "/api/auth/callback",
   "/api/auth/error",
   "/api/projects", // Public GET endpoint
-  "/api/projects/*/status", // Public status update endpoint
+  "/api/projects/status", // Public status update endpoint
 ];
 
 export async function middleware(request: NextRequest) {
