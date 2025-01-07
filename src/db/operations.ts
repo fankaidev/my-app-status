@@ -6,8 +6,22 @@ import { ProjectWithStatus, StatusHistory } from "@/types/db";
  */
 export async function getProjects(
   db: D1Database,
-  options: { includeDeleted?: boolean } = {}
+  options: { includeDeleted?: boolean; owner_id?: string } = {}
 ): Promise<ProjectWithStatus[]> {
+  const conditions = [];
+  const params = [];
+
+  if (!options.includeDeleted) {
+    conditions.push("(p.deleted = 0 OR p.deleted IS NULL)");
+  }
+
+  if (options.owner_id) {
+    conditions.push("p.owner_id = ?");
+    params.push(options.owner_id);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
   const stmt = db.prepare(`
         SELECT
             p.*,
@@ -28,9 +42,13 @@ export async function getProjects(
                 WHERE sh2.project_id = sh1.project_id
             )
         ) sh ON p.id = sh.project_id
-        ${!options.includeDeleted ? "WHERE p.deleted = 0 OR p.deleted IS NULL" : ""}
+        ${whereClause}
         ORDER BY p.name ASC
     `);
+
+  if (params.length > 0) {
+    stmt.bind(...params);
+  }
 
   const { results } = await stmt.all<ProjectWithStatus>();
   return results || [];
@@ -39,7 +57,19 @@ export async function getProjects(
 /**
  * Get a single project by ID with its latest status
  */
-export async function getProject(db: D1Database, id: string): Promise<ProjectWithStatus | null> {
+export async function getProject(
+  db: D1Database,
+  id: string,
+  options: { owner_id?: string } = {}
+): Promise<ProjectWithStatus | null> {
+  const conditions = ["p.id = ?"];
+  const params = [id];
+
+  if (options.owner_id) {
+    conditions.push("p.owner_id = ?");
+    params.push(options.owner_id);
+  }
+
   const stmt = db
     .prepare(
       `
@@ -62,10 +92,10 @@ export async function getProject(db: D1Database, id: string): Promise<ProjectWit
                 WHERE sh2.project_id = sh1.project_id
             )
         ) sh ON p.id = sh.project_id
-        WHERE p.id = ?
+        WHERE ${conditions.join(" AND ")}
     `
     )
-    .bind(id);
+    .bind(...params);
 
   const result = await stmt.first<ProjectWithStatus>();
   return result || null;

@@ -33,6 +33,6 @@
 
 ## Tasks
 [X] Add owner_id to projects table
-[ ] Update API to enforce user ownership
+[X] Update API to enforce user ownership
 [ ] Add integration tests for user-project relationship
 [ ] Update frontend components
