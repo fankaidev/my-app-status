@@ -39,5 +39,3 @@ Add a public API endpoint that allows updating the status of a project without a
     - Created route at `/api/projects/[id]/status`
     - Added validation for status and message fields
     - Implemented error handling
-[ ] Task 2: Implement database update logic
-[ ] Task 3: Add error handling and response formatting
