@@ -47,8 +47,8 @@ New tasks could be added when story was first created, or when further steps are
 You should finish tasks one by one, and all proposed code changes should be limited to current task only.
 It's ok to add unimplemented interfaces or return mocked values, as long as it will be implemented in furthur tasks.
 
-Once the task is finished and verified by USER, you should commit current changes.
-The project should able to pass all tests before each commit.
+Once the task is finished and verified by USER, you should commit current changes before move on to next task.
+Always run `npm test` to make sure all tests are passed before committing changes.
 Commit message should be meaningful, and include story id.
 e.g. `git add . && git commit -m "[S01] feat: add api interface" `
 

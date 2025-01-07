@@ -48,6 +48,6 @@ No schema changes needed. Will use existing tables:
 
 ## Tasks
 [X] Task 1: Add new database operations
-[ ] Task 2: Create new API endpoint
-[ ] Task 3: Add integration tests
+[X] Task 2: Create new API endpoint
+[X] Task 3: Add integration tests
 [ ] Task 4: Update API documentation
