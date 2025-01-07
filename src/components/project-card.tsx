@@ -7,6 +7,7 @@ interface Project {
   message?: string;
   updated_at: number;
   status_updated_at?: number;
+  owner_id: string;
 }
 
 interface ProjectCardProps {
@@ -20,7 +21,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
+          <p className="text-xs text-gray-500">Owner: {project.owner_id}</p>
+        </div>
         <div className={`w-3 h-3 rounded-full ${statusColor}`} />
       </div>
       <div className="space-y-1">

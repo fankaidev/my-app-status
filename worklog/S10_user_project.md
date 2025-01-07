@@ -35,4 +35,4 @@
 [X] Add owner_id to projects table
 [X] Update API to enforce user ownership
 [X] Add integration tests for user-project relationship
-[ ] Update frontend components
+[X] Update frontend components

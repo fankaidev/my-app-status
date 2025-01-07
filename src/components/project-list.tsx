@@ -1,7 +1,7 @@
 "use client";
 import { ErrorMessages, fetchApi } from "@/lib/api-client";
 import { ServiceStatus } from "@/types/db";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./project-card";
 
@@ -12,14 +12,22 @@ interface Project {
   message?: string;
   updated_at: number;
   status_updated_at?: number;
+  owner_id: string;
 }
 
 export function ProjectList() {
+  const { data: session } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!session) {
+      setLoading(false);
+      setError(ErrorMessages.UNAUTHORIZED);
+      return;
+    }
+
     async function loadProjects() {
       const result = await fetchApi<Project[]>("/api/projects");
 
@@ -36,7 +44,7 @@ export function ProjectList() {
     }
 
     loadProjects();
-  }, []);
+  }, [session]);
 
   if (loading) {
     return (
@@ -50,9 +58,8 @@ export function ProjectList() {
     const isUnauthorized = error === ErrorMessages.UNAUTHORIZED;
     return (
       <div
-        className={`bg-${isUnauthorized ? "yellow" : "red"}-50 border border-${
-          isUnauthorized ? "yellow" : "red"
-        }-200 rounded-lg p-8 text-center`}
+        className={`bg-${isUnauthorized ? "yellow" : "red"}-50 border border-${isUnauthorized ? "yellow" : "red"
+          }-200 rounded-lg p-8 text-center`}
       >
         <h3 className={`text-lg font-medium text-${isUnauthorized ? "yellow" : "red"}-900 mb-2`}>
           {isUnauthorized ? "Authentication Required" : "Error"}
