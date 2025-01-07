@@ -14,8 +14,8 @@ interface ApiErrorResponse {
 
 export async function fetchApi<T extends object>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
     try {
-        const res = await fetch(url, options)
-        const data = await res.json() as T | ApiErrorResponse
+        const res = await fetch(url, options);
+        const data = await res.json() as T | ApiErrorResponse;
 
         if (!res.ok) {
             // If the server returns an error object, use it

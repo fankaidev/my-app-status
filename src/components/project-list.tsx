@@ -16,12 +16,19 @@ interface Project {
 }
 
 export function ProjectList() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only show loading when session is loading
+    if (status === "loading") {
+      setLoading(true);
+      return;
+    }
+
+    // Show unauthorized when not authenticated
     if (!session) {
       setLoading(false);
       setError(ErrorMessages.UNAUTHORIZED);
@@ -44,7 +51,7 @@ export function ProjectList() {
     }
 
     loadProjects();
-  }, [session]);
+  }, [session, status]);
 
   if (loading) {
     return (
