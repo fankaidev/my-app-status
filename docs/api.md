@@ -10,6 +10,11 @@ GET /api/projects
 
 Returns a list of all projects with their latest status.
 
+#### Sample Request
+```bash
+curl https://my-app-status.pages.dev/api/projects
+```
+
 #### Response
 
 ```typescript
@@ -38,6 +43,11 @@ Returns details of a specific project.
 |------|------|-------------|
 | `id` | string | Project ID |
 
+#### Sample Request
+```bash
+curl https://my-app-status.pages.dev/api/projects/project-123
+```
+
 #### Response
 
 ```typescript
@@ -59,6 +69,42 @@ POST /api/projects/status
 ```
 
 Update project status using either ID or name. If using name and project doesn't exist, a new project will be created.
+
+#### Sample Requests
+
+Update by ID:
+```bash
+curl -X POST https://my-app-status.pages.dev/api/projects/status \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "project-123",
+    "status": "operational",
+    "message": "All systems operational"
+  }'
+```
+
+Update by name (creates project if not exists):
+```bash
+curl -X POST https://my-app-status.pages.dev/api/projects/status \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Web Frontend",
+    "status": "degraded",
+    "message": "Experiencing high latency"
+  }'
+```
+
+Update with both id and name (id takes precedence):
+```bash
+curl -X POST https://my-app-status.pages.dev/api/projects/status \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "project-123",
+    "name": "Web Frontend",
+    "status": "maintenance",
+    "message": "Scheduled maintenance in progress"
+  }'
+```
 
 #### Request Body
 
