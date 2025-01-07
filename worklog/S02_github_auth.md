@@ -63,7 +63,7 @@
     - Add user profile display
     - Integrate with layout
 
-[ ] Task 4: Protect API routes
+[X] Task 4: Protect API routes
     - Add auth checks to existing API routes
     - Test protected routes
 

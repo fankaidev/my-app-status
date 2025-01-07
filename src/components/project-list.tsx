@@ -1,4 +1,5 @@
 'use client'
+import { signIn } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { ProjectCard } from './project-card'
 
@@ -12,10 +13,15 @@ export function ProjectList() {
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isUnauthorized, setIsUnauthorized] = useState(false)
 
     useEffect(() => {
         fetch('/api/projects')
             .then(res => {
+                if (res.status === 401) {
+                    setIsUnauthorized(true)
+                    throw new Error('Please sign in to view projects')
+                }
                 if (!res.ok) {
                     throw new Error('Failed to fetch projects')
                 }
@@ -35,6 +41,21 @@ export function ProjectList() {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500" />
+            </div>
+        )
+    }
+
+    if (isUnauthorized) {
+        return (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+                <h3 className="text-lg font-medium text-yellow-900 mb-2">Authentication Required</h3>
+                <p className="text-yellow-700 mb-4">Please sign in to view the project status.</p>
+                <button
+                    onClick={() => signIn('github')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200"
+                >
+                    Sign in with GitHub
+                </button>
             </div>
         )
     }
