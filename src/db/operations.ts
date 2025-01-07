@@ -4,7 +4,10 @@ import { ProjectWithStatus, StatusHistory } from "@/types/db";
 /**
  * Get all projects with their latest status
  */
-export async function getProjects(db: D1Database): Promise<ProjectWithStatus[]> {
+export async function getProjects(
+  db: D1Database,
+  options: { includeDeleted?: boolean } = {}
+): Promise<ProjectWithStatus[]> {
   const stmt = db.prepare(`
         SELECT
             p.*,
@@ -25,6 +28,7 @@ export async function getProjects(db: D1Database): Promise<ProjectWithStatus[]> 
                 WHERE sh2.project_id = sh1.project_id
             )
         ) sh ON p.id = sh.project_id
+        ${!options.includeDeleted ? "WHERE p.deleted = 0 OR p.deleted IS NULL" : ""}
         ORDER BY p.name ASC
     `);
 

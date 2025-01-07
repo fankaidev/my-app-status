@@ -55,5 +55,11 @@
     - Created PUT /api/projects/[id]/delete endpoint
     - Added authentication check
     - Implemented soft delete functionality
-[ ] Task 4: Update project list to filter deleted items
+[X] Task 4: Update project list to filter deleted items
+    - Updated getProjects function to filter out deleted projects by default
+    - Added includeDeleted option to getProjects
+    - Updated /api/projects endpoint to support include_deleted parameter
+    - Admin page shows all projects while main page shows only active ones
 [ ] Task 5: Add tests for new functionality
+
+Would you like me to proceed with Task 5: Add tests for new functionality?

@@ -1,18 +1,20 @@
 import { getDB, getProjects } from "@/db";
-import { NextResponse } from "next/server";
+import { ApiError, ApiErrors } from "@/lib/api-error";
 
 export const runtime = "edge";
 
 export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const includeDeleted = url.searchParams.get("include_deleted") === "true";
     const db = await getDB();
-    const projects = await getProjects(db);
-    return NextResponse.json(projects);
+    const projects = await getProjects(db, { includeDeleted });
+    return Response.json(projects);
   } catch (error) {
-    console.error("Failed to get projects:", error);
-    return NextResponse.json(
-      { error: { message: error instanceof Error ? error.message : "An unexpected error occurred" } },
-      { status: 500 }
-    );
+    console.error("Error fetching projects:", error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw ApiErrors.BadRequest("Failed to fetch projects");
   }
 }
