@@ -25,3 +25,18 @@ When working with Cloudflare Pages and Next.js in edge runtime:
    export const runtime = 'edge';
    ```
    Without this, the database binding won't be available in the runtime context and you'll get "Database not initialized" error.
+
+## Testing
+1. When using Next.js route handlers in tests, make sure to mock auth if the route handler uses it, even indirectly.
+   ```typescript
+   // Mock auth at the beginning of test file
+   vi.mock("@/auth", () => ({
+     auth: vi.fn(),
+   }));
+   ```
+   This is needed because route handlers might use auth internally, and the test environment doesn't have access to auth configuration.
+
+## Dependencies
+- next.js: 14.2.22
+- next-auth: ^5.0.0-beta.25
+- edge-runtime for tests

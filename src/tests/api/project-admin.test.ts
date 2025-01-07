@@ -2,7 +2,6 @@ import { DELETE, PATCH } from "@/app/api/projects/[id]/route";
 import { GET as GET_LIST } from "@/app/api/projects/route";
 import { auth } from "@/auth";
 import { setTestDb } from "@/db";
-import { deleteProject, getProjects, restoreProject } from "@/db/operations";
 import { ProjectWithStatus } from "@/types/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
@@ -16,6 +15,12 @@ interface ProjectRow extends ProjectWithStatus {
   deleted: number;
 }
 
+interface ErrorResponse {
+  error: {
+    message: string;
+  };
+}
+
 describe("Project Admin Operations", () => {
   let db: any;
   let mockSession: any;
@@ -24,7 +29,7 @@ describe("Project Admin Operations", () => {
   beforeEach(() => {
     db = createTestDb();
     setTestDb(db);
-    testData = seedTestData(db);
+    testData = seedTestData(db) as { activeProject: ProjectRow; deletedProject: ProjectRow };
     mockSession = {
       user: {
         email: "test@example.com",
@@ -38,45 +43,6 @@ describe("Project Admin Operations", () => {
     cleanDb(db);
     setTestDb(null);
     vi.clearAllMocks();
-  });
-
-  describe("Database Operations", () => {
-    it("should soft delete a project", async () => {
-      await deleteProject(db, "1");
-      const projects = await getProjects(db, { includeDeleted: true });
-      const deletedProject = projects.find((p) => p.id === "1") as ProjectRow;
-      expect(deletedProject?.deleted).toBe(1);
-    });
-
-    it("should restore a deleted project", async () => {
-      await restoreProject(db, "2");
-      const projects = await getProjects(db, { includeDeleted: true });
-      const restoredProject = projects.find((p) => p.id === "2") as ProjectRow;
-      expect(restoredProject?.deleted).toBe(0);
-    });
-
-    it("should filter out deleted projects by default", async () => {
-      const projects = await getProjects(db);
-      expect(projects.length).toBe(1);
-      expect(projects[0].id).toBe("1");
-    });
-
-    it("should include deleted projects when requested", async () => {
-      const projects = await getProjects(db, { includeDeleted: true });
-      expect(projects.length).toBe(2);
-    });
-
-    it("should throw error when deleting non-existent project", async () => {
-      await expect(deleteProject(db, "999")).rejects.toThrow("Project not found");
-    });
-
-    it("should throw error when restoring non-existent project", async () => {
-      await expect(restoreProject(db, "999")).rejects.toThrow("Project not found");
-    });
-
-    it("should throw error when restoring non-deleted project", async () => {
-      await expect(restoreProject(db, "1")).rejects.toThrow("Project is not deleted");
-    });
   });
 
   describe("API Endpoints", () => {
@@ -106,7 +72,10 @@ describe("Project Admin Operations", () => {
           method: "DELETE",
         });
         const context = { params: { id: "1" } };
-        await expect(DELETE(request, context)).rejects.toThrow("Authentication required");
+        const response = await DELETE(request, context);
+        expect(response.status).toBe(401);
+        const data = (await response.json()) as ErrorResponse;
+        expect(data.error.message).toBe("Authentication required");
       });
 
       it("should soft delete a project", async () => {
@@ -117,8 +86,22 @@ describe("Project Admin Operations", () => {
         const response = await DELETE(request, context);
         expect(response.status).toBe(200);
 
-        const projects = await getProjects(db);
-        expect(projects.length).toBe(0); // All projects are now deleted
+        // Verify through GET API
+        const listResponse = await GET_LIST(new Request("http://localhost/api/projects?include_deleted=true"));
+        const projects = (await listResponse.json()) as (ProjectWithStatus & { deleted: number })[];
+        const deleted = projects.find((p) => p.id === "1");
+        expect(deleted?.deleted).toBe(1);
+      });
+
+      it("should return 404 for non-existent project", async () => {
+        const request = new Request("http://localhost/api/projects/999", {
+          method: "DELETE",
+        });
+        const context = { params: { id: "999" } };
+        const response = await DELETE(request, context);
+        expect(response.status).toBe(404);
+        const data = (await response.json()) as ErrorResponse;
+        expect(data.error.message).toBe("Project not found");
       });
     });
 
@@ -129,7 +112,10 @@ describe("Project Admin Operations", () => {
           method: "PATCH",
         });
         const context = { params: { id: "2" } };
-        await expect(PATCH(request, context)).rejects.toThrow("Authentication required");
+        const response = await PATCH(request, context);
+        expect(response.status).toBe(401);
+        const data = (await response.json()) as ErrorResponse;
+        expect(data.error.message).toBe("Authentication required");
       });
 
       it("should restore a deleted project", async () => {
@@ -140,8 +126,34 @@ describe("Project Admin Operations", () => {
         const response = await PATCH(request, context);
         expect(response.status).toBe(200);
 
-        const projects = await getProjects(db);
+        // Verify through GET API
+        const listResponse = await GET_LIST(new Request("http://localhost/api/projects"));
+        const projects = (await listResponse.json()) as (ProjectWithStatus & { deleted: number })[];
         expect(projects.length).toBe(2); // Both projects are now active
+        const restored = projects.find((p) => p.id === "2");
+        expect(restored?.deleted).toBe(0);
+      });
+
+      it("should return 404 for non-existent project", async () => {
+        const request = new Request("http://localhost/api/projects/999", {
+          method: "PATCH",
+        });
+        const context = { params: { id: "999" } };
+        const response = await PATCH(request, context);
+        expect(response.status).toBe(404);
+        const data = (await response.json()) as ErrorResponse;
+        expect(data.error.message).toBe("Project not found");
+      });
+
+      it("should return 400 for non-deleted project", async () => {
+        const request = new Request("http://localhost/api/projects/1", {
+          method: "PATCH",
+        });
+        const context = { params: { id: "1" } };
+        const response = await PATCH(request, context);
+        expect(response.status).toBe(400);
+        const data = (await response.json()) as ErrorResponse;
+        expect(data.error.message).toBe("Project is not deleted");
       });
     });
   });

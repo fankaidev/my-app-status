@@ -224,7 +224,7 @@ export async function deleteProject(db: D1Database, id: string): Promise<void> {
   // Check if project exists
   const project = await db.prepare("SELECT id FROM projects WHERE id = ?").bind(id).first();
   if (!project) {
-    throw ApiErrors.NotFound("Project not found");
+    throw ApiErrors.NotFound("Project");
   }
 
   // Soft delete the project
@@ -242,7 +242,7 @@ export async function restoreProject(db: D1Database, id: string): Promise<void> 
     .first<{ id: string; deleted: number }>();
 
   if (!project) {
-    throw ApiErrors.NotFound("Project not found");
+    throw ApiErrors.NotFound("Project");
   }
 
   if (!project.deleted) {

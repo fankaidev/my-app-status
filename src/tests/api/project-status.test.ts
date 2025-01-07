@@ -1,6 +1,11 @@
+import { GET as GET_PROJECT } from "@/app/api/projects/[id]/route";
 import { POST } from "@/app/api/projects/status/route";
-import { getDB } from "@/db";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Mock auth
+vi.mock("@/auth", () => ({
+  auth: vi.fn(),
+}));
 
 interface SuccessResponse {
   success: true;
@@ -15,7 +20,7 @@ interface ErrorResponse {
 
 describe("Project Status API", () => {
   // Helper function to create request
-  function createRequest(body: any) {
+  function createUpdateStatusRequest(body: any) {
     return new Request("http://localhost/api/projects/status", {
       method: "POST",
       headers: {
@@ -26,7 +31,7 @@ describe("Project Status API", () => {
   }
 
   it("should update existing project by id", async () => {
-    const req = createRequest({
+    const req = createUpdateStatusRequest({
       id: "test-project-1",
       status: "operational",
       message: "All systems operational",
@@ -37,25 +42,21 @@ describe("Project Status API", () => {
     const data = (await response.json()) as SuccessResponse;
     expect(data).toEqual({ success: true });
 
-    // Verify status was updated
-    const db = await getDB();
-    const result = await db
-      .prepare(
-        `SELECT status, message FROM status_history
-         WHERE project_id = ?
-         ORDER BY created_at DESC
-         LIMIT 1`
-      )
-      .bind("test-project-1")
-      .first();
-    expect(result).toMatchObject({
+    // Verify through GET API
+    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
+      params: { id: "test-project-1" },
+    });
+    expect(getResponse.status).toBe(200);
+    const project = await getResponse.json();
+    expect(project).toMatchObject({
+      id: "test-project-1",
       status: "operational",
       message: "All systems operational",
     });
   });
 
   it("should update existing project by name", async () => {
-    const req = createRequest({
+    const req = createUpdateStatusRequest({
       name: "Test Project",
       status: "degraded",
       message: "Performance issues",
@@ -66,25 +67,21 @@ describe("Project Status API", () => {
     const data = (await response.json()) as SuccessResponse;
     expect(data).toEqual({ success: true, projectId: "test-project-1" });
 
-    // Verify status was updated
-    const db = await getDB();
-    const result = await db
-      .prepare(
-        `SELECT status, message FROM status_history
-         WHERE project_id = ?
-         ORDER BY created_at DESC
-         LIMIT 1`
-      )
-      .bind("test-project-1")
-      .first();
-    expect(result).toMatchObject({
+    // Verify through GET API
+    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
+      params: { id: "test-project-1" },
+    });
+    expect(getResponse.status).toBe(200);
+    const project = await getResponse.json();
+    expect(project).toMatchObject({
+      id: "test-project-1",
       status: "degraded",
       message: "Performance issues",
     });
   });
 
   it("should create new project when updating by non-existing name", async () => {
-    const req = createRequest({
+    const req = createUpdateStatusRequest({
       name: "New Project",
       status: "maintenance",
       message: "Scheduled maintenance",
@@ -96,29 +93,22 @@ describe("Project Status API", () => {
     expect(data).toHaveProperty("success", true);
     expect(data).toHaveProperty("projectId");
 
-    // Verify project was created
-    const db = await getDB();
-    const project = await db.prepare("SELECT name FROM projects WHERE id = ?").bind(data.projectId).first();
-    expect(project).toMatchObject({ name: "New Project" });
-
-    // Verify status was set
-    const status = await db
-      .prepare(
-        `SELECT status, message FROM status_history
-         WHERE project_id = ?
-         ORDER BY created_at DESC
-         LIMIT 1`
-      )
-      .bind(data.projectId)
-      .first();
-    expect(status).toMatchObject({
+    // Verify through GET API
+    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/${data.projectId}`), {
+      params: { id: data.projectId! },
+    });
+    expect(getResponse.status).toBe(200);
+    const project = await getResponse.json();
+    expect(project).toMatchObject({
+      id: data.projectId,
+      name: "New Project",
       status: "maintenance",
       message: "Scheduled maintenance",
     });
   });
 
   it("should use id when both id and name are provided", async () => {
-    const req = createRequest({
+    const req = createUpdateStatusRequest({
       id: "test-project-1",
       name: "Different Name",
       status: "outage",
@@ -130,20 +120,14 @@ describe("Project Status API", () => {
     const data = (await response.json()) as SuccessResponse;
     expect(data).toEqual({ success: true });
 
-    // Verify status was updated for the correct project
-    const db = await getDB();
-    const result = await db
-      .prepare(
-        `SELECT p.name, sh.status, sh.message
-         FROM projects p
-         JOIN status_history sh ON p.id = sh.project_id
-         WHERE p.id = ?
-         ORDER BY sh.created_at DESC
-         LIMIT 1`
-      )
-      .bind("test-project-1")
-      .first();
-    expect(result).toMatchObject({
+    // Verify through GET API
+    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
+      params: { id: "test-project-1" },
+    });
+    expect(getResponse.status).toBe(200);
+    const project = await getResponse.json();
+    expect(project).toMatchObject({
+      id: "test-project-1",
       name: "Test Project", // Name should not change
       status: "outage",
       message: "System down",
@@ -152,7 +136,7 @@ describe("Project Status API", () => {
 
   describe("Error cases", () => {
     it("should return 400 when neither id nor name is provided", async () => {
-      const req = createRequest({
+      const req = createUpdateStatusRequest({
         status: "operational",
       });
 
@@ -163,7 +147,7 @@ describe("Project Status API", () => {
     });
 
     it("should return 400 for invalid status value", async () => {
-      const req = createRequest({
+      const req = createUpdateStatusRequest({
         id: "test-project-1",
         status: "invalid-status",
       });
@@ -175,7 +159,7 @@ describe("Project Status API", () => {
     });
 
     it("should return 400 for invalid message type", async () => {
-      const req = createRequest({
+      const req = createUpdateStatusRequest({
         id: "test-project-1",
         status: "operational",
         message: 123, // Should be string
@@ -188,7 +172,7 @@ describe("Project Status API", () => {
     });
 
     it("should return 404 for non-existent project id", async () => {
-      const req = createRequest({
+      const req = createUpdateStatusRequest({
         id: "non-existent",
         status: "operational",
       });

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { deleteProject, getDB, getProject, restoreProject } from "@/db";
-import { ApiError, ApiErrors } from "@/lib/api-error";
+import { ApiError } from "@/lib/api-error";
+import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
@@ -16,16 +17,16 @@ export async function GET(request: Request, context: RouteContext) {
     const db = await getDB();
     const project = await getProject(db, id);
     if (!project) {
-      throw ApiErrors.NotFound("Project not found");
+      return NextResponse.json({ error: { message: "Project not found" } }, { status: 404 });
     }
 
     return Response.json(project);
   } catch (error) {
     console.error("Error fetching project:", error);
     if (error instanceof ApiError) {
-      throw error;
+      return NextResponse.json({ error: { message: error.message } }, { status: error.statusCode });
     }
-    throw ApiErrors.BadRequest("Failed to fetch project");
+    return NextResponse.json({ error: { message: "Failed to fetch project" } }, { status: 400 });
   }
 }
 
@@ -33,7 +34,7 @@ export async function GET(request: Request, context: RouteContext) {
 export async function DELETE(request: Request, context: RouteContext) {
   const session = await auth();
   if (!session) {
-    throw ApiErrors.Unauthorized();
+    return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
   const { id } = context.params;
@@ -45,9 +46,9 @@ export async function DELETE(request: Request, context: RouteContext) {
   } catch (error) {
     console.error("Error deleting project:", error);
     if (error instanceof ApiError) {
-      throw error;
+      return NextResponse.json({ error: { message: error.message } }, { status: error.statusCode });
     }
-    throw ApiErrors.BadRequest("Failed to delete project");
+    return NextResponse.json({ error: { message: "Failed to delete project" } }, { status: 400 });
   }
 }
 
@@ -55,7 +56,7 @@ export async function DELETE(request: Request, context: RouteContext) {
 export async function PATCH(request: Request, context: RouteContext) {
   const session = await auth();
   if (!session) {
-    throw ApiErrors.Unauthorized();
+    return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
   const { id } = context.params;
@@ -67,8 +68,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     console.error("Error restoring project:", error);
     if (error instanceof ApiError) {
-      throw error;
+      return NextResponse.json({ error: { message: error.message } }, { status: error.statusCode });
     }
-    throw ApiErrors.BadRequest("Failed to restore project");
+    return NextResponse.json({ error: { message: "Failed to restore project" } }, { status: 400 });
   }
 }
