@@ -38,3 +38,4 @@ For detailed API documentation including request/response formats, parameters, a
 7. Support updating project status by name
 8. Add admin page with project deletion
 9. Improve testing by using public API endpoints
+10. Add user-project relationship and access control

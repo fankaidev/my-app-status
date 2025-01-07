@@ -173,18 +173,18 @@ export async function findProjectByName(db: D1Database, name: string): Promise<P
 /**
  * Create a new project
  */
-export async function createProject(db: D1Database, name: string): Promise<string> {
+export async function createProject(db: D1Database, name: string, owner_id: string): Promise<string> {
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
 
   await db
     .prepare(
       `
-        INSERT INTO projects (id, name, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO projects (id, name, owner_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
     `
     )
-    .bind(id, name, now, now)
+    .bind(id, name, owner_id, now, now)
     .run();
 
   return id;
@@ -198,7 +198,8 @@ export async function updateProjectStatusByName(
   db: D1Database,
   name: string,
   status: StatusHistory["status"],
-  message?: string
+  message?: string,
+  owner_id: string = 'system'
 ): Promise<string> {
   // First try to find project by name
   let project = await findProjectByName(db, name);
@@ -206,7 +207,7 @@ export async function updateProjectStatusByName(
 
   if (!project) {
     // Create new project if not found
-    projectId = await createProject(db, name);
+    projectId = await createProject(db, name, owner_id);
   } else {
     projectId = project.id;
   }

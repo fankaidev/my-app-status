@@ -33,9 +33,13 @@ For each story, create an item in `Changelog` section in README.md, like
 ## Changelog
 1. create project skeleton
 2. setup database
+...
+15. improve ui
+16. refactor testings
+...
 ```
 
-Then create a story document(SD) in ./worklog folder, like "S01_proj_skeleton.md" or "S02_setup_db.md", with concise and informative filename.
+Then create a story document(SD) in ./worklog folder, like "S01_proj_skeleton.md" or "S16_refactor_testings.md", with concise and informative filename.
 
 Useful information about the story development should be recorded in the story document:
 * user requirement

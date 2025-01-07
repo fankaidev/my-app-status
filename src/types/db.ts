@@ -1,6 +1,7 @@
 export interface Project {
   id: string;
   name: string;
+  owner_id: string;  // GitHub user ID
   created_at: number;
   updated_at: number;
 }
