@@ -74,6 +74,6 @@ CREATE INDEX idx_user_tokens_token ON user_tokens(token);
 [X] Add token management API endpoints
 [X] Update status update API to support token auth
 [X] Add token management UI components
-[ ] Add token management to admin panel
+[X] Add token management to admin panel
 [ ] Add tests for token management
 [ ] Update API documentation
