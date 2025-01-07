@@ -71,11 +71,11 @@ INSERT INTO projects (id, name) VALUES
     - Applied schema migrations
     - Configured database binding
     - Added database types
-[ ] Task 2: Create database utility functions
-    - Add database client wrapper
-    - Add helper functions for common queries
-    - Add type definitions
-[ ] Task 3: Update API endpoints
-    - Update GET /api/projects to use database
-    - Update POST /api/projects/[id]/status to use database
-    - Add error handling for database operations
+[X] Task 2: Create database utility functions
+    - Added database client wrapper
+    - Added helper functions for common queries
+    - Added type definitions
+[X] Task 3: Update API endpoints
+    - Updated GET /api/projects to use database
+    - Updated POST /api/projects/[id]/status to use database
+    - Added error handling for database operations

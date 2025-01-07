@@ -1,27 +1,18 @@
-import { NextResponse } from 'next/server'
+import { getDB, getProjects } from "@/db";
+import { NextResponse } from "next/server";
 
-export const runtime = 'edge'
-
-interface Project {
-    id: string
-    name: string
-    status: 'operational' | 'outage'
-}
-
-const SAMPLE_PROJECTS: Project[] = [
-    { id: '1', name: 'Web Frontend', status: 'operational' },
-    { id: '2', name: 'Authentication Service', status: 'operational' },
-    { id: '3', name: 'Database', status: 'operational' },
-    { id: '4', name: 'API Gateway', status: 'operational' },
-    { id: '5', name: 'Storage Service', status: 'operational' },
-]
+export const runtime = "edge";
 
 export async function GET() {
-    // Randomly set some services to outage
-    const projects = SAMPLE_PROJECTS.map(project => ({
-        ...project,
-        status: Math.random() > 0.7 ? 'outage' : 'operational'
-    }))
-
-    return NextResponse.json(projects)
+  try {
+    const db = await getDB();
+    const projects = await getProjects(db);
+    return NextResponse.json(projects);
+  } catch (error) {
+    console.error("Failed to get projects:", error);
+    return NextResponse.json(
+      { error: { message: error instanceof Error ? error.message : "An unexpected error occurred" } },
+      { status: 500 }
+    );
+  }
 }

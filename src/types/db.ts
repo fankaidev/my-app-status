@@ -5,10 +5,18 @@ export interface Project {
   updated_at: number;
 }
 
+// Status values representing service health
+export type ServiceStatus =
+  | "operational" // Service is functioning normally
+  | "degraded" // Service is experiencing some issues but still functioning
+  | "outage" // Service is completely down
+  | "maintenance" // Planned maintenance
+  | "unknown"; // Status cannot be determined
+
 export interface StatusHistory {
   id: number;
   project_id: string;
-  status: "operational" | "outage" | "running" | "failed";
+  status: ServiceStatus;
   message?: string;
   created_at: number;
 }
@@ -20,7 +28,7 @@ export interface Env {
 
 // Type for project with its latest status
 export interface ProjectWithStatus extends Project {
-  status: StatusHistory["status"];
+  status: ServiceStatus;
   message?: string;
   status_updated_at?: number;
 }
