@@ -50,6 +50,7 @@ It's ok to add unimplemented interfaces or return mocked values, as long as it w
 Once the task is finished and verified by USER, you should commit current changes before move on to next task.
 Always run `npm test` to make sure all tests are passed before committing changes.
 Commit message should be meaningful, and include story id.
+Stage all changes in project folder unless otherwised specified,
 e.g. `git add . && git commit -m "[S01] feat: add api interface" `
 
 Only start working on next task after user confirmation.
