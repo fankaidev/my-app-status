@@ -32,15 +32,24 @@ export function ProjectList() {
     }, [])
 
     if (loading) {
-        return <div className="text-center p-4">Loading projects...</div>
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500" />
+            </div>
+        )
     }
 
     if (error) {
-        return <div className="text-center text-red-500 p-4">{error}</div>
+        return (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center text-red-700">
+                <p className="font-medium">Error loading projects</p>
+                <p className="text-sm text-red-600">{error}</p>
+            </div>
+        )
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map(project => (
                 <ProjectCard key={project.id} project={project} />
             ))}
