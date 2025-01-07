@@ -22,7 +22,7 @@ export async function getProjects(
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const stmt = db.prepare(`
+  let stmt = db.prepare(`
         SELECT
             p.*,
             sh.status,
@@ -36,8 +36,8 @@ export async function getProjects(
                 message,
                 created_at
             FROM status_history sh1
-            WHERE created_at = (
-                SELECT MAX(created_at)
+            WHERE id = (
+                SELECT MAX(id)
                 FROM status_history sh2
                 WHERE sh2.project_id = sh1.project_id
             )
@@ -47,7 +47,7 @@ export async function getProjects(
     `);
 
   if (params.length > 0) {
-    stmt.bind(...params);
+    stmt = stmt.bind(...params);
   }
 
   const { results } = await stmt.all<ProjectWithStatus>();
@@ -86,8 +86,8 @@ export async function getProject(
                 message,
                 created_at
             FROM status_history sh1
-            WHERE created_at = (
-                SELECT MAX(created_at)
+            WHERE id = (
+                SELECT MAX(id)
                 FROM status_history sh2
                 WHERE sh2.project_id = sh1.project_id
             )
@@ -186,8 +186,8 @@ export async function findProjectByName(db: D1Database, name: string): Promise<P
                 message,
                 created_at
             FROM status_history sh1
-            WHERE created_at = (
-                SELECT MAX(created_at)
+            WHERE id = (
+                SELECT MAX(id)
                 FROM status_history sh2
                 WHERE sh2.project_id = sh1.project_id
             )

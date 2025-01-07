@@ -29,13 +29,15 @@ export async function POST(request: Request) {
     }
 
     const db = await getDB();
+    let projectId: string | undefined;
 
     if (body.id) {
       await updateProjectStatus(db, body.id, body.status, body.message, {
         owner_id: session.user.email,
       });
+      projectId = body.id;
     } else if (body.name) {
-      await updateProjectStatusByName(
+      projectId = await updateProjectStatusByName(
         db,
         body.name,
         body.status,
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return new Response(null, { status: 204 });
+    return Response.json({ success: true, projectId });
   } catch (error) {
     console.error("Error updating project status:", error);
     if (error instanceof ApiError) {

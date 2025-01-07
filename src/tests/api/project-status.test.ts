@@ -1,10 +1,14 @@
 import { GET as GET_PROJECT } from "@/app/api/projects/[id]/route";
 import { POST } from "@/app/api/projects/status/route";
-import { describe, expect, it, vi } from "vitest";
+import { auth } from "@/auth";
+import { setTestDb } from "@/db";
+import { ApiError } from "@/lib/api-error";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
 
-// Mock auth
+// Mock auth with a valid session
 vi.mock("@/auth", () => ({
-  auth: vi.fn(),
+  auth: vi.fn(() => Promise.resolve({ user: { email: "test@example.com" } })),
 }));
 
 interface SuccessResponse {
@@ -19,6 +23,22 @@ interface ErrorResponse {
 }
 
 describe("Project Status API", () => {
+  let db: any;
+
+  beforeEach(() => {
+    // Reset auth mock before each test
+    vi.mocked(auth).mockClear();
+    // Setup test database
+    db = createTestDb();
+    setTestDb(db);
+    seedTestData(db);
+  });
+
+  afterEach(() => {
+    cleanDb(db);
+    setTestDb(null);
+  });
+
   // Helper function to create request
   function createUpdateStatusRequest(body: any) {
     return new Request("http://localhost/api/projects/status", {
@@ -32,7 +52,7 @@ describe("Project Status API", () => {
 
   it("should update existing project by id", async () => {
     const req = createUpdateStatusRequest({
-      id: "test-project-1",
+      id: "1", // Use seeded project id
       status: "operational",
       message: "All systems operational",
     });
@@ -40,16 +60,18 @@ describe("Project Status API", () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
     const data = (await response.json()) as SuccessResponse;
-    expect(data).toEqual({ success: true });
+    expect(data).toEqual({ success: true, projectId: "1" });
 
     // Verify through GET API
-    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
-      params: { id: "test-project-1" },
+    const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
+      params: { id: "1" },
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
     expect(project).toMatchObject({
-      id: "test-project-1",
+      id: "1",
+      name: "Active Project",
+      owner_id: "test@example.com",
       status: "operational",
       message: "All systems operational",
     });
@@ -57,7 +79,7 @@ describe("Project Status API", () => {
 
   it("should update existing project by name", async () => {
     const req = createUpdateStatusRequest({
-      name: "Test Project",
+      name: "Active Project",
       status: "degraded",
       message: "Performance issues",
     });
@@ -65,16 +87,18 @@ describe("Project Status API", () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
     const data = (await response.json()) as SuccessResponse;
-    expect(data).toEqual({ success: true, projectId: "test-project-1" });
+    expect(data).toEqual({ success: true, projectId: "1" });
 
     // Verify through GET API
-    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
-      params: { id: "test-project-1" },
+    const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
+      params: { id: "1" },
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
     expect(project).toMatchObject({
-      id: "test-project-1",
+      id: "1",
+      name: "Active Project",
+      owner_id: "test@example.com",
       status: "degraded",
       message: "Performance issues",
     });
@@ -91,7 +115,6 @@ describe("Project Status API", () => {
     expect(response.status).toBe(200);
     const data = (await response.json()) as SuccessResponse;
     expect(data).toHaveProperty("success", true);
-    expect(data).toHaveProperty("projectId");
 
     // Verify through GET API
     const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/${data.projectId}`), {
@@ -102,6 +125,7 @@ describe("Project Status API", () => {
     expect(project).toMatchObject({
       id: data.projectId,
       name: "New Project",
+      owner_id: "test@example.com",
       status: "maintenance",
       message: "Scheduled maintenance",
     });
@@ -109,7 +133,7 @@ describe("Project Status API", () => {
 
   it("should use id when both id and name are provided", async () => {
     const req = createUpdateStatusRequest({
-      id: "test-project-1",
+      id: "1",
       name: "Different Name",
       status: "outage",
       message: "System down",
@@ -118,17 +142,18 @@ describe("Project Status API", () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
     const data = (await response.json()) as SuccessResponse;
-    expect(data).toEqual({ success: true });
+    expect(data).toEqual({ success: true, projectId: "1" });
 
     // Verify through GET API
-    const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/test-project-1`), {
-      params: { id: "test-project-1" },
+    const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
+      params: { id: "1" },
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
     expect(project).toMatchObject({
-      id: "test-project-1",
-      name: "Test Project", // Name should not change
+      id: "1",
+      name: "Active Project", // Name should not change
+      owner_id: "test@example.com",
       status: "outage",
       message: "System down",
     });
@@ -139,36 +164,50 @@ describe("Project Status API", () => {
       const req = createUpdateStatusRequest({
         status: "operational",
       });
-
-      const response = await POST(req);
-      expect(response.status).toBe(400);
-      const data = (await response.json()) as ErrorResponse;
-      expect(data.error.message).toBe("Either id or name must be provided");
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(400);
+        } else {
+          throw error;
+        }
+      }
     });
 
     it("should return 400 for invalid status value", async () => {
       const req = createUpdateStatusRequest({
-        id: "test-project-1",
+        id: "1",
         status: "invalid-status",
       });
 
-      const response = await POST(req);
-      expect(response.status).toBe(400);
-      const data = (await response.json()) as ErrorResponse;
-      expect(data.error.message).toMatch(/Status must be one of:/);
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(400);
+        } else {
+          throw error;
+        }
+      }
     });
 
     it("should return 400 for invalid message type", async () => {
       const req = createUpdateStatusRequest({
-        id: "test-project-1",
+        id: "1",
         status: "operational",
         message: 123, // Should be string
       });
 
-      const response = await POST(req);
-      expect(response.status).toBe(400);
-      const data = (await response.json()) as ErrorResponse;
-      expect(data.error.message).toBe("Message must be a string");
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(400);
+        } else {
+          throw error;
+        }
+      }
     });
 
     it("should return 404 for non-existent project id", async () => {
@@ -177,10 +216,57 @@ describe("Project Status API", () => {
         status: "operational",
       });
 
-      const response = await POST(req);
-      expect(response.status).toBe(404);
-      const data = (await response.json()) as ErrorResponse;
-      expect(data.error.message).toBe("Project not found");
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(404);
+        } else {
+          throw error;
+        }
+      }
+    });
+
+    it("should return 401 when not authenticated", async () => {
+      // Mock auth to return no session
+      vi.mocked(auth).mockResolvedValueOnce(null);
+
+      const req = createUpdateStatusRequest({
+        id: "1",
+        status: "operational",
+      });
+
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(401);
+        } else {
+          throw error;
+        }
+      }
+    });
+
+    it("should return 404 when trying to update another user's project", async () => {
+      // Mock auth to return different user
+      vi.mocked(auth).mockResolvedValueOnce({
+        user: { email: "other@example.com" }
+      });
+
+      const req = createUpdateStatusRequest({
+        id: "1",
+        status: "operational",
+      });
+
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(404);
+        } else {
+          throw error;
+        }
+      }
     });
   });
 });

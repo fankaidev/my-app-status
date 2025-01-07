@@ -40,3 +40,16 @@ When working with Cloudflare Pages and Next.js in edge runtime:
 - next.js: 14.2.22
 - next-auth: ^5.0.0-beta.25
 - edge-runtime for tests
+
+## D1 Database Lessons
+
+- D1 的 `bind()` 操作是不可变的（immutable），它返回一个新的 statement 对象而不是修改原有对象。需要重新赋值：
+  ```typescript
+  // ❌ Wrong
+  stmt.bind(...params);
+  await stmt.all();
+
+  // ✅ Correct
+  stmt = stmt.bind(...params);
+  await stmt.all();
+  ```

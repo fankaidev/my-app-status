@@ -10,6 +10,7 @@ export function createTestDb() {
   const migrations = [
     readFileSync(resolve(process.cwd(), "migrations/0000_initial.sql"), "utf-8"),
     readFileSync(resolve(process.cwd(), "migrations/0001_add_deleted_flag.sql"), "utf-8"),
+    readFileSync(resolve(process.cwd(), "migrations/03_add_owner_id.sql"), "utf-8"),
   ];
 
   // Execute each migration
@@ -27,19 +28,21 @@ export function createTestDb() {
   const testDb = {
     prepare: (sql: string) => {
       const stmt = db.prepare(sql);
-      return {
+      const wrapper = {
         bind: (...params: any[]) => {
-          const boundStmt = stmt;
+          // Return a new wrapper with bound parameters
           return {
-            first: () => boundStmt.get(...params),
-            run: () => boundStmt.run(...params),
-            all: () => ({ results: boundStmt.all(...params) }),
+            first: () => stmt.get(...params),
+            run: () => stmt.run(...params),
+            all: () => ({ results: stmt.all(...params) }),
           };
         },
-        all: <T>() => ({ results: stmt.all() as T[] }),
+        // Default methods when no parameters are bound
         first: () => stmt.get(),
         run: () => stmt.run(),
+        all: <T>() => ({ results: stmt.all() as T[] }),
       };
+      return wrapper;
     },
     batch: (statements: any[]) => {
       db.transaction(() => {
@@ -63,6 +66,7 @@ export function seedTestData(db: any) {
   const activeProject = {
     id: "1",
     name: "Active Project",
+    owner_id: "test@example.com",
     created_at: Date.now(),
     updated_at: Date.now(),
     deleted: 0,
@@ -73,6 +77,7 @@ export function seedTestData(db: any) {
   const deletedProject = {
     id: "2",
     name: "Deleted Project",
+    owner_id: "test@example.com",
     created_at: Date.now(),
     updated_at: Date.now(),
     deleted: 1,
@@ -81,20 +86,26 @@ export function seedTestData(db: any) {
   };
 
   // Insert project
-  db.prepare("INSERT INTO projects (id, name, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?)")
+  db.prepare(
+    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?, ?)"
+  )
     .bind(
       activeProject.id,
       activeProject.name,
+      activeProject.owner_id,
       activeProject.created_at,
       activeProject.updated_at,
       activeProject.deleted
     )
     .run();
 
-  db.prepare("INSERT INTO projects (id, name, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?)")
+  db.prepare(
+    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?, ?)"
+  )
     .bind(
       deletedProject.id,
       deletedProject.name,
+      deletedProject.owner_id,
       deletedProject.created_at,
       deletedProject.updated_at,
       deletedProject.deleted

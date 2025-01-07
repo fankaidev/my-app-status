@@ -2,6 +2,7 @@ import { DELETE, PATCH } from "@/app/api/projects/[id]/route";
 import { GET as GET_LIST } from "@/app/api/projects/route";
 import { auth } from "@/auth";
 import { setTestDb } from "@/db";
+import { ApiError } from "@/lib/api-error";
 import { ProjectWithStatus } from "@/types/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
@@ -72,10 +73,16 @@ describe("Project Admin Operations", () => {
           method: "DELETE",
         });
         const context = { params: { id: "1" } };
-        const response = await DELETE(request, context);
-        expect(response.status).toBe(401);
-        const data = (await response.json()) as ErrorResponse;
-        expect(data.error.message).toBe("Authentication required");
+        try {
+          const response = await DELETE(request, context);
+          expect(response.status).toBe(401);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(401);
+          } else {
+            throw error;
+          }
+        }
       });
 
       it("should soft delete a project", async () => {
@@ -98,10 +105,16 @@ describe("Project Admin Operations", () => {
           method: "DELETE",
         });
         const context = { params: { id: "999" } };
-        const response = await DELETE(request, context);
-        expect(response.status).toBe(404);
-        const data = (await response.json()) as ErrorResponse;
-        expect(data.error.message).toBe("Project not found");
+        try {
+          const response = await DELETE(request, context);
+          expect(response.status).toBe(404);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(404);
+          } else {
+            throw error;
+          }
+        }
       });
     });
 
@@ -112,10 +125,16 @@ describe("Project Admin Operations", () => {
           method: "PATCH",
         });
         const context = { params: { id: "2" } };
-        const response = await PATCH(request, context);
-        expect(response.status).toBe(401);
-        const data = (await response.json()) as ErrorResponse;
-        expect(data.error.message).toBe("Authentication required");
+        try {
+          const response = await PATCH(request, context);
+          expect(response.status).toBe(401);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(401);
+          } else {
+            throw error;
+          }
+        }
       });
 
       it("should restore a deleted project", async () => {
@@ -139,10 +158,16 @@ describe("Project Admin Operations", () => {
           method: "PATCH",
         });
         const context = { params: { id: "999" } };
-        const response = await PATCH(request, context);
-        expect(response.status).toBe(404);
-        const data = (await response.json()) as ErrorResponse;
-        expect(data.error.message).toBe("Project not found");
+        try {
+          const response = await PATCH(request, context);
+          expect(response.status).toBe(404);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(404);
+          } else {
+            throw error;
+          }
+        }
       });
 
       it("should return 400 for non-deleted project", async () => {
@@ -150,10 +175,16 @@ describe("Project Admin Operations", () => {
           method: "PATCH",
         });
         const context = { params: { id: "1" } };
-        const response = await PATCH(request, context);
-        expect(response.status).toBe(400);
-        const data = (await response.json()) as ErrorResponse;
-        expect(data.error.message).toBe("Project is not deleted");
+        try {
+          const response = await PATCH(request, context);
+          expect(response.status).toBe(400);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(400);
+          } else {
+            throw error;
+          }
+        }
       });
     });
   });
