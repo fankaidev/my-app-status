@@ -116,6 +116,28 @@ describe("Project Admin Operations", () => {
           }
         }
       });
+
+      it("should not allow deleting other user's project", async () => {
+        // Mock different user
+        (auth as any).mockResolvedValueOnce({
+          user: { email: "other@example.com" }
+        });
+
+        const request = new Request("http://localhost/api/projects/1", {
+          method: "DELETE",
+        });
+        const context = { params: { id: "1" } };
+        try {
+          const response = await DELETE(request, context);
+          expect(response.status).toBe(404);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(404);
+          } else {
+            throw error;
+          }
+        }
+      });
     });
 
     describe("PATCH /api/projects/[id]", () => {
@@ -181,6 +203,28 @@ describe("Project Admin Operations", () => {
         } catch (error) {
           if (error instanceof ApiError) {
             expect(error.statusCode).toBe(400);
+          } else {
+            throw error;
+          }
+        }
+      });
+
+      it("should not allow restoring other user's project", async () => {
+        // Mock different user
+        (auth as any).mockResolvedValueOnce({
+          user: { email: "other@example.com" }
+        });
+
+        const request = new Request("http://localhost/api/projects/2", {
+          method: "PATCH",
+        });
+        const context = { params: { id: "2" } };
+        try {
+          const response = await PATCH(request, context);
+          expect(response.status).toBe(404);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            expect(error.statusCode).toBe(404);
           } else {
             throw error;
           }

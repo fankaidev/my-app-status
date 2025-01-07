@@ -1,5 +1,6 @@
 import { GET as GET_PROJECT } from "@/app/api/projects/[id]/route";
 import { GET } from "@/app/api/projects/route";
+import { auth } from "@/auth";
 import { setTestDb } from "@/db";
 import { ApiError } from "@/lib/api-error";
 import type { ProjectWithStatus } from "@/types/db";
@@ -72,6 +73,21 @@ describe("Projects API", () => {
       expect(data.length).toBe(1); // Only active project
       expect(data[0].owner_id).toBe("test@example.com");
     });
+
+    it("should not return projects from other users", async () => {
+      // Mock different user
+      vi.mocked(auth).mockResolvedValueOnce({
+        user: { email: "other@example.com" }
+      });
+
+      const req = new Request("http://localhost/api/projects");
+      const response = await GET(req);
+      const data = (await response.json()) as ProjectWithStatus[];
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBe(0); // No projects for other user
+    });
   });
 
   describe("GET /api/projects/[id]", () => {
@@ -121,6 +137,25 @@ describe("Projects API", () => {
       const req = new Request("http://localhost/api/projects/invalid-id");
       try {
         const response = await GET_PROJECT(req, { params: { id: "invalid-id" } });
+        expect(response.status).toBe(404);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(404);
+        } else {
+          throw error;
+        }
+      }
+    });
+
+    it("should not allow access to other user's project", async () => {
+      // Mock different user
+      vi.mocked(auth).mockResolvedValueOnce({
+        user: { email: "other@example.com" }
+      });
+
+      const req = new Request("http://localhost/api/projects/1");
+      try {
+        const response = await GET_PROJECT(req, { params: { id: "1" } });
         expect(response.status).toBe(404);
       } catch (error) {
         if (error instanceof ApiError) {
