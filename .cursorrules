@@ -44,7 +44,12 @@ Each task should be highly focused. For example, for a request like "refactor th
 New tasks could be added when story was first created, or when further steps are identified.
 
 You should finish tasks one by one, and all proposed code changes should be limited to current task only.
-Once the task is finished, you should commit current changes: `git add . && git commit -m "xxx" `
+The project should able to pass all tests after changes for each task. It's ok to add unimplemented interfaces or return mocked values, as long as it will be implemented in furthur tasks.
+
+Once the task is finished, you should commit current changes.
+Commit message should be meaningful, and include story id.
+e.g. `git add . && git commit -m "[S01] feat: add api interface" `
+
 Only start working on next task after user confirmation.
 
 Use todo markers to indicate the progress, e.g.
