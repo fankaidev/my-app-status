@@ -20,9 +20,9 @@ USER might use below shortcuts for fast reply:
 You should organize user request into one or more stories.
 A story is a complete feature or functionality.
 
-For each story, create an item in ./worklog/stories.md, like
+For each story, create an item in `Changelog` section in README.md, like
 ```
-# Stories
+## Changelog
 1. create project skeleton
 2. setup database
 ```
