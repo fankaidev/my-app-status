@@ -3,3 +3,4 @@
 2. Implement GitHub authentication with Auth.js
 3. Add public API for status updates ✅
 4. Setup D1 database for project status
+5. Setup test framework and write integration tests

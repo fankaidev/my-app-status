@@ -10,7 +10,9 @@
     "pages:build": "npx @cloudflare/next-on-pages",
     "preview": "npm run pages:build && wrangler pages dev",
     "deploy": "npm run pages:build && wrangler pages deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "next": "14.2.22",
@@ -21,16 +23,25 @@
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.7",
     "@cloudflare/workers-types": "^4.20241230.0",
+    "@edge-runtime/ponyfill": "^4.0.0",
     "@eslint/eslintrc": "^3",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^20",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "edge-runtime": "^4.0.1",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.22",
+    "msw": "^2.7.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vercel": "^39.2.5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.8",
     "wrangler": "^3.99.0"
   }
 }
