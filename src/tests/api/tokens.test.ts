@@ -41,7 +41,7 @@ describe("Token Management API", () => {
         // Create a test token
         testTokenId = crypto.randomUUID();
         testTokenValue = generateToken();
-        const hashedToken = hashToken(testTokenValue);
+        const hashedToken = await hashToken(testTokenValue);
 
         const result = await db
             .prepare(

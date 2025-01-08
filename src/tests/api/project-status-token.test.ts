@@ -41,7 +41,7 @@ describe("Project Status API with Token Auth", () => {
 
         // Create test token
         testToken = generateToken();
-        hashedToken = hashToken(testToken);
+        hashedToken = await hashToken(testToken);
         await db
             .prepare(
                 `INSERT INTO user_tokens (id, user_id, token, name)

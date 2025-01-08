@@ -1,5 +1,4 @@
 import { D1Database } from "@cloudflare/workers-types";
-import { createHash, randomBytes } from "crypto";
 
 /**
  * Token format: "ast_" + 32 bytes of random data in hex
@@ -22,7 +21,11 @@ export interface UserToken {
  * @returns token value in format "ast_<random_hex>"
  */
 export function generateToken(): string {
-    const randomHex = randomBytes(32).toString("hex");
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const randomHex = Array.from(array)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
     return `${TOKEN_PREFIX}${randomHex}`;
 }
 
@@ -31,8 +34,12 @@ export function generateToken(): string {
  * @param token The token value to hash
  * @returns SHA-256 hash of the token
  */
-export function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
+export async function hashToken(token: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(token);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -72,7 +79,7 @@ export async function validateToken(
     db: D1Database,
     token: string
 ): Promise<string | null> {
-    const hashedToken = hashToken(token);
+    const hashedToken = await hashToken(token);
 
     const stmt = db.prepare(`
     SELECT user_id, revoked_at
@@ -110,7 +117,7 @@ export async function createUserToken(
 ): Promise<{ token: string; id: string }> {
     const id = crypto.randomUUID();
     const token = generateToken();
-    const hashedToken = hashToken(token);
+    const hashedToken = await hashToken(token);
 
     await db
         .prepare(
