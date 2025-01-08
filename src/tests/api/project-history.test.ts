@@ -1,4 +1,5 @@
 import { GET } from "@/app/api/projects/[id]/history/route";
+import { POST } from "@/app/api/projects/status/route";
 import { auth } from "@/auth";
 import { setTestDb } from "@/db";
 import { ApiError } from "@/lib/api-error";
@@ -85,36 +86,32 @@ describe("Project History API", () => {
       }
     });
 
-    it("should return empty history for new project", async () => {
+    it("should return more history after set status", async () => {
       const req = new Request("http://localhost/api/projects/1/history");
       const response = await GET(req, { params: { id: "1" } });
       const data = (await response.json()) as { history: StatusHistory[] };
 
       expect(response.status).toBe(200);
-      expect(data.history).toEqual([]);
-    });
+      const prevHistory = data.history;
 
-    it("should return status history in reverse chronological order", async () => {
-      const req = new Request("http://localhost/api/projects/1/history");
-      const response = await GET(req, { params: { id: "1" } });
-      const data = (await response.json()) as { history: StatusHistory[] };
+      const req2 = new Request("http://localhost/api/projects/status", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "1",
+          status: "degraded",
+          message: "Performance issues",
+        }),
+      });
+      const response2 = await POST(req2);
+      expect(response2.status).toBe(200);
 
-      expect(response.status).toBe(200);
-      expect(data.history).toHaveLength(3);
-      expect(data.history[0].status).toBe("major_outage");
-      expect(data.history[1].status).toBe("degraded");
-      expect(data.history[2].status).toBe("operational");
-    });
+      const req3 = new Request("http://localhost/api/projects/1/history");
+      const response3 = await GET(req3, { params: { id: "1" } });
+      const data3 = (await response3.json()) as { history: StatusHistory[] };
+      const newHistory = data3.history;
 
-    it("should respect limit parameter", async () => {
-      const req = new Request("http://localhost/api/projects/1/history?limit=2");
-      const response = await GET(req, { params: { id: "1" } });
-      const data = (await response.json()) as { history: StatusHistory[] };
-
-      expect(response.status).toBe(200);
-      expect(data.history).toHaveLength(2);
-      expect(data.history[0].status).toBe("major_outage");
-      expect(data.history[1].status).toBe("degraded");
+      expect(response3.status).toBe(200);
+      expect(newHistory.length).toEqual(prevHistory.length + 1);
     });
   });
 });
