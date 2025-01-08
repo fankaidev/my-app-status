@@ -70,6 +70,22 @@ POST /api/projects/status
 
 Update project status using either ID or name. If using name and project doesn't exist, a new project will be created.
 
+#### Authentication
+You can authenticate using either:
+1. Session cookie (when logged in)
+2. Bearer token in Authorization header
+
+Example with token:
+```bash
+curl -X POST https://my-app-status.pages.dev/api/projects/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ast_your_token_here" \
+  -d '{
+    "id": "project-123",
+    "status": "operational"
+  }'
+```
+
 #### Sample Requests
 
 Update by ID:
@@ -163,3 +179,75 @@ The following status values are supported:
 - `outage` - System is completely down
 - `maintenance` - System is under maintenance
 - `unknown` - System status is unknown
+
+## Token Management
+
+### Create Token
+
+```http
+POST /api/tokens
+```
+
+Create a new API token for the authenticated user.
+
+#### Request Body
+```typescript
+{
+  name: string;  // A descriptive name for the token
+}
+```
+
+#### Response
+```typescript
+{
+  token: string;  // The token value (only shown once)
+  id: string;     // Token ID for management
+}
+```
+
+### List Tokens
+
+```http
+GET /api/tokens
+```
+
+List all tokens for the authenticated user.
+
+#### Response
+```typescript
+{
+  id: string;
+  name: string;
+  created_at: number;
+  last_used_at?: number;
+  revoked_at?: number;
+}[]
+```
+
+### Revoke Token
+
+```http
+DELETE /api/tokens/{id}
+```
+
+Revoke a token by its ID.
+
+#### Parameters
+| Name | Type | Description |
+|------|------|-------------|
+| `id` | string | Token ID |
+
+#### Response
+```typescript
+{
+  success: true
+}
+```
+
+#### Error Responses (for all token endpoints)
+| Status | Description |
+|--------|-------------|
+| 400 | Bad Request - Invalid input |
+| 401 | Unauthorized - Not authenticated |
+| 404 | Not Found - Token not found |
+| 500 | Internal Server Error |
