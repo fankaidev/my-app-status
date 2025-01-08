@@ -63,3 +63,16 @@ When working with Cloudflare Pages and Next.js in edge runtime:
   npx wrangler d1 execute <database-name> --local --file=migrations/my_migration.sql
   ```
   This ensures consistency between local and production environments, and helps catch potential issues early.
+
+## Database Testing
+
+### D1 vs Test Database Result Format
+When working with database operations in tests, be aware that D1 and the test database (better-sqlite3) return different result formats:
+- D1 returns: `{ success: boolean, meta: { changes: number } }`
+- Test DB returns: `{ changes: number, lastInsertRowid: number }`
+
+For functions that need to work in both environments, handle both formats:
+```typescript
+// Example for checking if a row was updated
+return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
+```
