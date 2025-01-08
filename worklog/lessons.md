@@ -34,8 +34,6 @@ When working with Cloudflare Pages and Next.js in edge runtime:
    - AUTH_GITHUB_SECRET
    - AUTH_TRUST_HOST (set to true for local developement)
 
-# Lessons Learned
-
 ## API Routes
 1. Always set `export const runtime = 'edge'` at the top of API route files when using Cloudflare D1 database.
    ```typescript
@@ -92,6 +90,25 @@ For functions that need to work in both environments, handle both formats:
 return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
 ```
 
+### D1 vs Test Database Result Format
+When working with database operations in tests, be aware that D1 and the test database (better-sqlite3) return different result formats:
+- D1 returns: `{ success: boolean, meta: { changes: number } }`
+- Test DB returns: `{ changes: number, lastInsertRowid: number }`
+
+For functions that need to work in both environments, handle both formats:
+```typescript
+// Example for checking if a row was updated
+return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
+```
+
+
+### Dynamic Test Verification
+- Instead of hardcoding expected test results (like array lengths), prefer verifying relative changes
+- Example: When testing history records, compare length before and after an operation rather than expecting a specific number
+- This makes tests more maintainable and less brittle to data changes
+- Pattern: `expect(newLength).toEqual(previousLength + 1)` instead of `expect(length).toEqual(3)`
+
+
 ## Dependencies
 - next.js: 14.2.22
 - next-auth: ^5.0.0-beta.25
@@ -120,15 +137,3 @@ return (result.success && result.meta?.changes === 1) || (result as any).changes
   ```
   This ensures consistency between local and production environments, and helps catch potential issues early.
 
-## Database Testing
-
-### D1 vs Test Database Result Format
-When working with database operations in tests, be aware that D1 and the test database (better-sqlite3) return different result formats:
-- D1 returns: `{ success: boolean, meta: { changes: number } }`
-- Test DB returns: `{ changes: number, lastInsertRowid: number }`
-
-For functions that need to work in both environments, handle both formats:
-```typescript
-// Example for checking if a row was updated
-return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
-```
