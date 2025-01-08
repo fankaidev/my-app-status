@@ -8,12 +8,12 @@ const TOKEN_PREFIX = "ast_"; // app status token
 const TOKEN_LENGTH = 32; // 16 bytes in hex = 32 characters
 
 export interface UserToken {
-    id: string;
-    user_id: string;
-    name: string;
-    created_at: number;
-    last_used_at?: number;
-    revoked_at?: number;
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: number;
+  last_used_at?: number;
+  revoked_at?: number;
 }
 
 /**
@@ -21,12 +21,12 @@ export interface UserToken {
  * @returns token value in format "ast_<random_hex>"
  */
 export function generateToken(): string {
-    const array = new Uint8Array(16); // 16 bytes for shorter token
-    crypto.getRandomValues(array);
-    const randomHex = Array.from(array)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-    return `${TOKEN_PREFIX}${randomHex}`;
+  const array = new Uint8Array(16); // 16 bytes for shorter token
+  crypto.getRandomValues(array);
+  const randomHex = Array.from(array)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `${TOKEN_PREFIX}${randomHex}`;
 }
 
 /**
@@ -35,11 +35,11 @@ export function generateToken(): string {
  * @returns SHA-256 hash of the token
  */
 export async function hashToken(token: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(token);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -48,11 +48,9 @@ export async function hashToken(token: string): Promise<string> {
  * @returns true if token format is valid
  */
 export function isValidTokenFormat(token: string): boolean {
-    return (
-        typeof token === "string" &&
-        token.startsWith(TOKEN_PREFIX) &&
-        token.length === TOKEN_PREFIX.length + TOKEN_LENGTH
-    );
+  return (
+    typeof token === "string" && token.startsWith(TOKEN_PREFIX) && token.length === TOKEN_PREFIX.length + TOKEN_LENGTH
+  );
 }
 
 /**
@@ -61,12 +59,12 @@ export function isValidTokenFormat(token: string): boolean {
  * @returns token value if valid, null otherwise
  */
 export function extractTokenFromHeader(authHeader?: string): string | null {
-    if (!authHeader?.startsWith("Bearer ")) {
-        return null;
-    }
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
 
-    const token = authHeader.slice(7); // Remove "Bearer " prefix
-    return isValidTokenFormat(token) ? token : null;
+  const token = authHeader.slice(7); // Remove "Bearer " prefix
+  return isValidTokenFormat(token) ? token : null;
 }
 
 /**
@@ -75,32 +73,28 @@ export function extractTokenFromHeader(authHeader?: string): string | null {
  * @param token The token to validate
  * @returns user_id if token is valid, null otherwise
  */
-export async function validateToken(
-    db: D1Database,
-    token: string
-): Promise<string | null> {
-    const hashedToken = await hashToken(token);
+export async function validateToken(db: D1Database, token: string): Promise<string | null> {
+  const hashedToken = await hashToken(token);
 
-    const stmt = db.prepare(`
+  const stmt = db
+    .prepare(
+      `
     SELECT user_id, revoked_at
     FROM user_tokens
     WHERE token = ?
-  `).bind(hashedToken);
+  `
+    )
+    .bind(hashedToken);
 
-    const result = await stmt.first<{ user_id: string; revoked_at: number | null }>();
-    if (!result || result.revoked_at) {
-        return null;
-    }
+  const result = await stmt.first<{ user_id: string; revoked_at: number | null }>();
+  if (!result || result.revoked_at) {
+    return null;
+  }
 
-    // Update last_used_at
-    await db
-        .prepare(
-            `UPDATE user_tokens SET last_used_at = unixepoch() WHERE token = ?`
-        )
-        .bind(hashedToken)
-        .run();
+  // Update last_used_at
+  await db.prepare(`UPDATE user_tokens SET last_used_at = unixepoch() WHERE token = ?`).bind(hashedToken).run();
 
-    return result.user_id;
+  return result.user_id;
 }
 
 /**
@@ -111,23 +105,23 @@ export async function validateToken(
  * @returns The token value (only returned once) and token id
  */
 export async function createUserToken(
-    db: D1Database,
-    user_id: string,
-    name: string
+  db: D1Database,
+  user_id: string,
+  name: string
 ): Promise<{ token: string; id: string }> {
-    const id = crypto.randomUUID();
-    const token = generateToken();
-    const hashedToken = await hashToken(token);
+  const id = crypto.randomUUID();
+  const token = generateToken();
+  const hashedToken = await hashToken(token);
 
-    await db
-        .prepare(
-            `INSERT INTO user_tokens (id, user_id, token, name)
+  await db
+    .prepare(
+      `INSERT INTO user_tokens (id, user_id, token, name)
        VALUES (?, ?, ?, ?)`
-        )
-        .bind(id, user_id, hashedToken, name)
-        .run();
+    )
+    .bind(id, user_id, hashedToken, name)
+    .run();
 
-    return { token, id };
+  return { token, id };
 }
 
 /**
@@ -136,19 +130,20 @@ export async function createUserToken(
  * @param user_id The user's email
  * @returns Array of user tokens (without token values)
  */
-export async function listUserTokens(
-    db: D1Database,
-    user_id: string
-): Promise<UserToken[]> {
-    const stmt = db.prepare(`
+export async function listUserTokens(db: D1Database, user_id: string): Promise<UserToken[]> {
+  const stmt = db
+    .prepare(
+      `
     SELECT id, user_id, name, created_at, last_used_at, revoked_at
     FROM user_tokens
     WHERE user_id = ?
     ORDER BY created_at DESC
-  `).bind(user_id);
+  `
+    )
+    .bind(user_id);
 
-    const result = await stmt.all<UserToken>();
-    return result.results;
+  const result = await stmt.all<UserToken>();
+  return result.results;
 }
 
 /**
@@ -158,20 +153,16 @@ export async function listUserTokens(
  * @param user_id The user's email (for verification)
  * @returns true if token was revoked, false if token not found or already revoked
  */
-export async function revokeToken(
-    db: D1Database,
-    id: string,
-    user_id: string
-): Promise<boolean> {
-    const result = await db
-        .prepare(
-            `UPDATE user_tokens
+export async function revokeToken(db: D1Database, id: string, user_id: string): Promise<boolean> {
+  const result = await db
+    .prepare(
+      `UPDATE user_tokens
        SET revoked_at = unixepoch()
        WHERE id = ? AND user_id = ? AND revoked_at IS NULL`
-        )
-        .bind(id, user_id)
-        .run();
+    )
+    .bind(id, user_id)
+    .run();
 
-    // Handle both D1 and test database result formats
-    return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
+  // Handle both D1 and test database result formats
+  return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
 }

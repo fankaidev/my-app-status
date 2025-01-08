@@ -111,10 +111,17 @@ export async function updateProjectStatus(
   message?: string,
   options: { owner_id?: string } = {}
 ): Promise<void> {
-  // First check if project exists and belongs to owner
-  const project = await getProject(db, projectId, { owner_id: options.owner_id });
+  // First check if project exists and get owner info
+  const stmt = db.prepare("SELECT * FROM projects WHERE id = ?").bind(projectId);
+  const project = await stmt.first<{ id: string; owner_id: string }>();
+
   if (!project) {
     throw ApiErrors.NotFound("Project");
+  }
+
+  // Check ownership if owner_id is provided and not system
+  if (options.owner_id && options.owner_id !== "system" && project.owner_id !== options.owner_id) {
+    throw ApiErrors.Unauthorized();
   }
 
   // Insert new status record
@@ -169,7 +176,11 @@ export async function getProjectStatusHistory(
 /**
  * Find a project by name
  */
-export async function findProjectByName(db: D1Database, name: string): Promise<ProjectWithStatus | null> {
+export async function findProjectByName(
+  db: D1Database,
+  name: string,
+  options: { owner_id?: string } = {}
+): Promise<ProjectWithStatus | null> {
   const stmt = db
     .prepare(
       `
@@ -198,7 +209,13 @@ export async function findProjectByName(db: D1Database, name: string): Promise<P
     .bind(name);
 
   const result = await stmt.first<ProjectWithStatus>();
-  return result || null;
+
+  // Check ownership after finding the project
+  if (result && options.owner_id && options.owner_id !== "system" && result.owner_id !== options.owner_id) {
+    throw ApiErrors.Unauthorized();
+  }
+
+  return result;
 }
 
 /**
@@ -230,10 +247,11 @@ export async function updateProjectStatusByName(
   name: string,
   status: StatusHistory["status"],
   message?: string,
-  owner_id: string = 'system'
+  owner_id: string = "system"
 ): Promise<string> {
   // First try to find project by name
   let project = await findProjectByName(db, name);
+
   let projectId: string;
 
   if (!project) {
@@ -241,8 +259,8 @@ export async function updateProjectStatusByName(
     projectId = await createProject(db, name, owner_id);
   } else {
     projectId = project.id;
-    // Check ownership if project exists
-    if (owner_id !== 'system' && project.owner_id !== owner_id) {
+    // Check ownership if not system user
+    if (owner_id !== "system" && project.owner_id !== owner_id) {
       throw ApiErrors.Unauthorized();
     }
   }

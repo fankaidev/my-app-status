@@ -40,3 +40,4 @@ For detailed API documentation including request/response formats, parameters, a
 9. Improve testing by using public API endpoints
 10. Add user-project relationship and access control
 11. Add user token for updating project status
+12. Enhance project security with owner-based access

@@ -8,7 +8,12 @@ import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
 
 // Mock auth with a valid session
 vi.mock("@/auth", () => ({
-  auth: vi.fn(() => Promise.resolve({ user: { email: "test@example.com" } })),
+  auth: vi.fn(() =>
+    Promise.resolve({
+      user: { email: "test@example.com" },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    })
+  ),
 }));
 
 interface SuccessResponse {
@@ -229,7 +234,7 @@ describe("Project Status API", () => {
 
     it("should return 401 when not authenticated", async () => {
       // Mock auth to return no session
-      vi.mocked(auth).mockResolvedValueOnce(null);
+      vi.mocked(auth).mockResolvedValueOnce(undefined);
 
       const req = createUpdateStatusRequest({
         id: "1",
@@ -248,9 +253,10 @@ describe("Project Status API", () => {
     });
 
     it("should return 404 when trying to update another user's project", async () => {
-      // Mock auth to return different user
+      // Mock auth to return a different user
       vi.mocked(auth).mockResolvedValueOnce({
-        user: { email: "other@example.com" }
+        user: { email: "other@example.com" },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
 
       const req = createUpdateStatusRequest({
@@ -262,11 +268,67 @@ describe("Project Status API", () => {
         await POST(req);
       } catch (error) {
         if (error instanceof ApiError) {
-          expect(error.statusCode).toBe(404);
+          expect(error.statusCode).toBe(401);
         } else {
           throw error;
         }
       }
+    });
+
+    it("should return 401 when trying to update another user's project by name", async () => {
+      // Mock auth to return a different user
+      vi.mocked(auth).mockResolvedValueOnce({
+        user: { email: "other@example.com" },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      const req = createUpdateStatusRequest({
+        name: "Active Project",
+        status: "operational",
+      });
+
+      try {
+        await POST(req);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          expect(error.statusCode).toBe(401);
+        } else {
+          throw error;
+        }
+      }
+    });
+
+    it("should allow system user to update any project", async () => {
+      // Mock auth to return system user
+      vi.mocked(auth).mockResolvedValueOnce({
+        user: { email: "system" },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      const req = createUpdateStatusRequest({
+        name: "Active Project",
+        status: "operational",
+        message: "System update",
+      });
+
+      const response = await POST(req);
+      expect(response.status).toBe(200);
+      const data = (await response.json()) as SuccessResponse;
+      expect(data).toEqual({ success: true, projectId: "1" });
+
+      // Verify through GET API
+      const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
+        params: { id: "1" },
+      });
+      expect(getResponse.status).toBe(200);
+      const project = await getResponse.json();
+      expect(project).toMatchObject({
+        id: "1",
+        name: "Active Project",
+        owner_id: "test@example.com", // Original owner should be preserved
+        status: "operational",
+        message: "System update",
+      });
     });
   });
 });

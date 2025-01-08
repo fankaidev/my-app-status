@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     // Try token auth first
     const authHeader = request.headers.get("Authorization");
     let userId: string | null = null;
-
     if (authHeader) {
       const token = extractTokenFromHeader(authHeader);
       if (token) {
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
       throw ApiErrors.Unauthorized();
     }
 
-    const body = await request.json() as UpdateStatusRequest;
+    const body = (await request.json()) as UpdateStatusRequest;
     if (!body?.status) {
       throw ApiErrors.BadRequest("Status is required");
     }
@@ -56,13 +55,7 @@ export async function POST(request: Request) {
       });
       projectId = body.id;
     } else if (body.name) {
-      projectId = await updateProjectStatusByName(
-        db,
-        body.name,
-        body.status,
-        body.message,
-        userId
-      );
+      projectId = await updateProjectStatusByName(db, body.name, body.status, body.message, userId);
     }
 
     return Response.json({ success: true, projectId });
