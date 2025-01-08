@@ -1,4 +1,5 @@
 import { ServiceStatus } from "@/types/db";
+import { StatusTimeline } from "./status-timeline";
 
 interface Project {
   id: string;
@@ -23,7 +24,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
-          <p className="text-xs text-gray-500">Owner: {project.owner_id}</p>
         </div>
         <div className={`w-3 h-3 rounded-full ${statusColor}`} />
       </div>
@@ -31,6 +31,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <p className="text-sm text-gray-600 capitalize">{project.status}</p>
         {project.message && <p className="text-sm text-gray-500">{project.message}</p>}
         <p className="text-xs text-gray-400">Last updated {lastUpdateTime}</p>
+      </div>
+      <div className="mt-4">
+        <StatusTimeline projectId={project.id} />
       </div>
     </div>
   );
@@ -45,7 +48,7 @@ function getStatusColor(status: ServiceStatus): string {
     case "outage":
       return "bg-red-500"; // Red for complete outage
     case "maintenance":
-      return "bg-blue-500"; // Blue for planned maintenance
+      return "bg-violet-400"; // Bright violet for planned maintenance
     case "unknown":
     default:
       return "bg-gray-500"; // Gray for unknown status

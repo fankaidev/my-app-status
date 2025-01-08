@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getDB, updateProjectStatus, updateProjectStatusByName } from "@/db";
-import { ApiError, ApiErrors } from "@/lib/api-error";
+import { ApiError, ApiErrors, validateServiceStatus } from "@/lib/api-error";
 import { extractTokenFromHeader, validateToken } from "@/lib/token-utils";
 import { ServiceStatus } from "@/types/db";
 
@@ -42,6 +42,13 @@ export async function POST(request: Request) {
     const body = (await request.json()) as UpdateStatusRequest;
     if (!body?.status) {
       throw ApiErrors.BadRequest("Status is required");
+    }
+
+    // Validate status value
+    if (!validateServiceStatus(body.status)) {
+      throw ApiErrors.BadRequest(
+        `Invalid status value. Must be one of: operational, degraded, outage, maintenance, unknown`
+      );
     }
 
     if (!body.id && !body.name) {
