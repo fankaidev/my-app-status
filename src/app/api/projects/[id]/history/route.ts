@@ -18,7 +18,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     const { id } = context.params;
     const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const limit = parseInt(url.searchParams.get("limit") || "18");
 
     const db = await getDB();
 

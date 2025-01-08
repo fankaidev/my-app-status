@@ -2,7 +2,7 @@ import { ServiceStatus } from "@/types/db";
 import { NextResponse } from "next/server";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(message: string, public statusCode: number = 500, public code: string = "INTERNAL_SERVER_ERROR") {
     super(message);
     this.name = "ApiError";
   }
@@ -16,9 +16,10 @@ export function handleApiError(error: unknown) {
       {
         error: {
           message: error.message,
+          code: error.code,
         },
       },
-      { status: error.status }
+      { status: error.statusCode }
     );
   }
 
@@ -26,6 +27,7 @@ export function handleApiError(error: unknown) {
     {
       error: {
         message: "An unexpected error occurred",
+        code: "INTERNAL_SERVER_ERROR",
       },
     },
     { status: 500 }
@@ -33,10 +35,10 @@ export function handleApiError(error: unknown) {
 }
 
 export const ApiErrors = {
-  BadRequest: (message = "Bad Request") => new ApiError(400, message),
-  Unauthorized: (message = "Unauthorized") => new ApiError(401, message),
-  NotFound: (type = "Resource") => new ApiError(404, `${type} not found`),
-  Forbidden: (message = "Access denied") => new ApiError(403, message),
+  BadRequest: (message = "Bad Request") => new ApiError(message, 400, "BAD_REQUEST"),
+  Unauthorized: () => new ApiError("Authentication required", 401, "UNAUTHORIZED"),
+  NotFound: (type = "Resource") => new ApiError(`${type} not found`, 404, "NOT_FOUND"),
+  Forbidden: (message = "Access denied") => new ApiError(message, 403, "FORBIDDEN"),
 };
 
 export const ValidServiceStatus = ["operational", "degraded", "major_outage", "maintenance", "unknown"] as const;

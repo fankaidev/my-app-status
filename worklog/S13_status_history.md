@@ -43,7 +43,7 @@
 [X] Task 2: Add GET /api/projects/[id]/history endpoint
 [-] Task 3: Add uptime calculation logic (skipped - not needed)
 [X] Task 4: Create timeline visualization component
-[ ] Task 5: Update tests for new features
+[X] Task 5: Update tests for new features
 
 ## Progress Notes
 
@@ -63,3 +63,12 @@
   - Loading and error states
   - Responsive design
 - Integrated timeline into ProjectCard component
+
+### Task 5 Completion
+- Added comprehensive tests for history endpoint:
+  - Authentication checks
+  - Project ownership validation
+  - Empty history handling
+  - Order of history items
+  - Limit parameter support
+- Created auth utils for testing with token authentication

@@ -69,7 +69,7 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
               <div className={`w-4 h-8 ${statusColor} rounded cursor-pointer transition-all hover:w-6`}></div>
               <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
                 <div>{new Date(status.created_at * 1000).toLocaleString()}</div>
-                <div className="capitalize">{status.status}</div>
+                <div className="capitalize">{status.status.replace("_", " ")}</div>
                 {status.message && <div>{status.message}</div>}
               </div>
             </div>
