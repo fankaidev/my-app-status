@@ -1,11 +1,11 @@
 import { D1Database } from "@cloudflare/workers-types";
 
 /**
- * Token format: "ast_" + 32 bytes of random data in hex
- * Example: ast_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+ * Token format: "ast_" + 16 bytes of random data in hex
+ * Example: ast_1234567890abcdef1234567890abcdef
  */
 const TOKEN_PREFIX = "ast_"; // app status token
-const TOKEN_LENGTH = 64; // 32 bytes in hex = 64 characters
+const TOKEN_LENGTH = 32; // 16 bytes in hex = 32 characters
 
 export interface UserToken {
     id: string;
@@ -21,7 +21,7 @@ export interface UserToken {
  * @returns token value in format "ast_<random_hex>"
  */
 export function generateToken(): string {
-    const array = new Uint8Array(32);
+    const array = new Uint8Array(16); // 16 bytes for shorter token
     crypto.getRandomValues(array);
     const randomHex = Array.from(array)
         .map(b => b.toString(16).padStart(2, '0'))
