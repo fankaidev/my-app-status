@@ -9,6 +9,7 @@ A modern status page application built with Next.js 14 and deployed on Cloudflar
 - ⚡ Edge Runtime Performance
 - 🔄 Public API for Status Updates
 - 📅 Last Update Time Tracking
+- 📈 Historical Status Timeline
 
 ## Tech Stack
 
@@ -41,3 +42,4 @@ For detailed API documentation including request/response formats, parameters, a
 10. Add user-project relationship and access control
 11. Add user token for updating project status
 12. Enhance project security with owner-based access
+13. Add status history timeline display
