@@ -119,8 +119,8 @@ export async function updateProjectStatus(
     throw ApiErrors.NotFound("Project");
   }
 
-  // Check ownership if owner_id is provided and not system
-  if (options.owner_id && options.owner_id !== "system" && project.owner_id !== options.owner_id) {
+  // Check ownership if owner_id is provided
+  if (options.owner_id && project.owner_id !== options.owner_id) {
     throw ApiErrors.Unauthorized();
   }
 
@@ -211,7 +211,7 @@ export async function findProjectByName(
   const result = await stmt.first<ProjectWithStatus>();
 
   // Check ownership after finding the project
-  if (result && options.owner_id && options.owner_id !== "system" && result.owner_id !== options.owner_id) {
+  if (result && options.owner_id && result.owner_id !== options.owner_id) {
     throw ApiErrors.Unauthorized();
   }
 
@@ -247,10 +247,10 @@ export async function updateProjectStatusByName(
   name: string,
   status: StatusHistory["status"],
   message?: string,
-  owner_id: string = "system"
+  owner_id: string
 ): Promise<string> {
   // First try to find project by name
-  let project = await findProjectByName(db, name);
+  let project = await findProjectByName(db, name, { owner_id });
 
   let projectId: string;
 
@@ -259,10 +259,6 @@ export async function updateProjectStatusByName(
     projectId = await createProject(db, name, owner_id);
   } else {
     projectId = project.id;
-    // Check ownership if not system user
-    if (owner_id !== "system" && project.owner_id !== owner_id) {
-      throw ApiErrors.Unauthorized();
-    }
   }
 
   // Update status

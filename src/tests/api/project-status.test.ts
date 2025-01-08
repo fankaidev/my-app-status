@@ -252,7 +252,7 @@ describe("Project Status API", () => {
       }
     });
 
-    it("should return 404 when trying to update another user's project", async () => {
+    it("should return 401 when trying to update another user's project", async () => {
       // Mock auth to return a different user
       vi.mocked(auth).mockResolvedValueOnce({
         user: { email: "other@example.com" },
@@ -296,39 +296,6 @@ describe("Project Status API", () => {
           throw error;
         }
       }
-    });
-
-    it("should allow system user to update any project", async () => {
-      // Mock auth to return system user
-      vi.mocked(auth).mockResolvedValueOnce({
-        user: { email: "system" },
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      });
-
-      const req = createUpdateStatusRequest({
-        name: "Active Project",
-        status: "operational",
-        message: "System update",
-      });
-
-      const response = await POST(req);
-      expect(response.status).toBe(200);
-      const data = (await response.json()) as SuccessResponse;
-      expect(data).toEqual({ success: true, projectId: "1" });
-
-      // Verify through GET API
-      const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
-        params: { id: "1" },
-      });
-      expect(getResponse.status).toBe(200);
-      const project = await getResponse.json();
-      expect(project).toMatchObject({
-        id: "1",
-        name: "Active Project",
-        owner_id: "test@example.com", // Original owner should be preserved
-        status: "operational",
-        message: "System update",
-      });
     });
   });
 });
