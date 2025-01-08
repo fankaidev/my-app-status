@@ -31,12 +31,7 @@ export async function GET(request: Request, context: RouteContext) {
     // Get status history
     const history = await getProjectStatusHistory(db, id, limit);
 
-    // TODO: Add uptime calculation in Task 3
-
-    return Response.json({
-      history,
-      uptime: null, // Will be implemented in Task 3
-    });
+    return Response.json({ history });
   } catch (error) {
     console.error("Error fetching project history:", error);
     if (error instanceof ApiError) {
