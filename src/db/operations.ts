@@ -121,6 +121,7 @@ export async function updateProjectStatus(
 
   // Check ownership if owner_id is provided
   if (options.owner_id && project.owner_id !== options.owner_id) {
+    console.log("owner_id does not match project owner_id");
     throw ApiErrors.Unauthorized();
   }
 
@@ -179,7 +180,7 @@ export async function getProjectStatusHistory(
 export async function findProjectByName(
   db: D1Database,
   name: string,
-  options: { owner_id?: string } = {}
+  options: { owner_id: string }
 ): Promise<ProjectWithStatus | null> {
   const stmt = db
     .prepare(
@@ -203,19 +204,12 @@ export async function findProjectByName(
                 WHERE sh2.project_id = sh1.project_id
             )
         ) sh ON p.id = sh.project_id
-        WHERE p.name = ?
+        WHERE p.name = ? AND p.owner_id = ?
     `
     )
-    .bind(name);
+    .bind(name, options.owner_id);
 
-  const result = await stmt.first<ProjectWithStatus>();
-
-  // Check ownership after finding the project
-  if (result && options.owner_id && result.owner_id !== options.owner_id) {
-    throw ApiErrors.Unauthorized();
-  }
-
-  return result;
+  return await stmt.first<ProjectWithStatus>();
 }
 
 /**
@@ -244,18 +238,18 @@ export async function createProject(db: D1Database, name: string, owner_id: stri
  */
 export async function updateProjectStatusByName(
   db: D1Database,
+  owner_id: string,
   name: string,
   status: StatusHistory["status"],
-  message?: string,
-  owner_id: string
+  message?: string
 ): Promise<string> {
   // First try to find project by name
   let project = await findProjectByName(db, name, { owner_id });
-
   let projectId: string;
 
   if (!project) {
     // Create new project if not found
+    console.log("creating new project with name:", name);
     projectId = await createProject(db, name, owner_id);
   } else {
     projectId = project.id;

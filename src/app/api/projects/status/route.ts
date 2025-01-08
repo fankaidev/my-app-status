@@ -34,8 +34,10 @@ export async function POST(request: Request) {
 
     // If both auth methods failed, return unauthorized
     if (!userId) {
+      console.log("missing userId");
       throw ApiErrors.Unauthorized();
     }
+    console.log("got userId", userId);
 
     const body = (await request.json()) as UpdateStatusRequest;
     if (!body?.status) {
@@ -48,14 +50,15 @@ export async function POST(request: Request) {
 
     const db = await getDB();
     let projectId: string | undefined;
-
     if (body.id) {
+      console.log("updating project status by id:", body.id);
       await updateProjectStatus(db, body.id, body.status, body.message, {
         owner_id: userId,
       });
       projectId = body.id;
     } else if (body.name) {
-      projectId = await updateProjectStatusByName(db, body.name, body.status, body.message, userId);
+      console.log("updating project status by name:", body.name);
+      projectId = await updateProjectStatusByName(db, userId, body.name, body.status, body.message);
     }
 
     return Response.json({ success: true, projectId });
