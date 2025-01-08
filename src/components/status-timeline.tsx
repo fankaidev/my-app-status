@@ -49,7 +49,6 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
 
   return (
     <div className="flex flex-col space-y-2">
-      <h3 className="text-lg font-semibold">Status History</h3>
       <div className="flex items-center space-x-1">
         {history.map((status) => {
           const statusColor = {
@@ -66,7 +65,7 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
               className="group relative"
               title={`${status.status}${status.message ? `: ${status.message}` : ""}`}
             >
-              <div className={`w-4 h-8 ${statusColor} rounded cursor-pointer transition-all hover:w-6`}></div>
+              <div className={`w-3 h-8 ${statusColor} rounded cursor-pointer transition-all hover:w-4`}></div>
               <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
                 <div>{new Date(status.created_at * 1000).toLocaleString()}</div>
                 <div className="capitalize">{status.status.replace("_", " ")}</div>
