@@ -36,6 +36,44 @@ When working with Cloudflare Pages and Next.js in edge runtime:
    ```
    This is needed because route handlers might use auth internally, and the test environment doesn't have access to auth configuration.
 
+### Database Setup in Tests
+❌ Don't create tables in test files:
+```typescript
+// Bad practice: creating tables in tests
+beforeEach(async () => {
+    db = createTestDb();
+    await db.batch([
+        db.prepare(`CREATE TABLE projects (...)`),
+        db.prepare(`CREATE TABLE status_history (...)`),
+    ]);
+});
+```
+
+✅ Instead, use migrations to create schema:
+1. Tests should use the same schema as production
+2. Schema should be managed by migrations only
+3. If tests need different schema, it indicates a design issue
+4. Migrations ensure schema consistency across all environments
+
+Example:
+```typescript
+beforeEach(async () => {
+    db = createTestDb();
+    await db.exec(await readMigrations());  // Apply all migrations
+});
+```
+
+### Test Database Result Format
+When working with database operations in tests, be aware that D1 and the test database (better-sqlite3) return different result formats:
+- D1 returns: `{ success: boolean, meta: { changes: number } }`
+- Test DB returns: `{ changes: number, lastInsertRowid: number }`
+
+For functions that need to work in both environments, handle both formats:
+```typescript
+// Example for checking if a row was updated
+return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
+```
+
 ## Dependencies
 - next.js: 14.2.22
 - next-auth: ^5.0.0-beta.25
