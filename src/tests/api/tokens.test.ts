@@ -29,22 +29,6 @@ describe("Token Management API", () => {
         db = createTestDb();
         setTestDb(db);
 
-        // Create test tables
-        await db.batch([
-            db.prepare(`
-        CREATE TABLE user_tokens (
-          id TEXT PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          token TEXT NOT NULL,
-          name TEXT NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-          last_used_at INTEGER,
-          revoked_at INTEGER,
-          UNIQUE(token)
-        )
-      `),
-        ]);
-
         // Setup mock session
         mockSession = {
             user: {

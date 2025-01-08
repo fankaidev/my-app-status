@@ -11,6 +11,7 @@ export function createTestDb() {
     readFileSync(resolve(process.cwd(), "migrations/0000_initial.sql"), "utf-8"),
     readFileSync(resolve(process.cwd(), "migrations/0001_add_deleted_flag.sql"), "utf-8"),
     readFileSync(resolve(process.cwd(), "migrations/03_add_owner_id.sql"), "utf-8"),
+    readFileSync(resolve(process.cwd(), "migrations/04_add_user_tokens.sql"), "utf-8"),
   ];
 
   // Execute each migration

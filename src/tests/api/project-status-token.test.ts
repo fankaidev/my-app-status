@@ -28,42 +28,6 @@ describe("Project Status API with Token Auth", () => {
         db = createTestDb();
         setTestDb(db);
 
-        // Create test tables
-        await db.batch([
-            db.prepare(`
-        CREATE TABLE projects (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          owner_id TEXT NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-          updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
-          deleted BOOLEAN NOT NULL DEFAULT 0
-        )
-      `),
-            db.prepare(`
-        CREATE TABLE status_history (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          project_id TEXT NOT NULL,
-          status TEXT NOT NULL,
-          message TEXT,
-          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-          FOREIGN KEY (project_id) REFERENCES projects(id)
-        )
-      `),
-            db.prepare(`
-        CREATE TABLE user_tokens (
-          id TEXT PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          token TEXT NOT NULL,
-          name TEXT NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-          last_used_at INTEGER,
-          revoked_at INTEGER,
-          UNIQUE(token)
-        )
-      `),
-        ]);
-
         // Create test project
         const result = await db
             .prepare(
