@@ -140,7 +140,7 @@ describe("Project Status API", () => {
     const req = createUpdateStatusRequest({
       id: "1",
       name: "Different Name",
-      status: "outage",
+      status: "major_outage",
       message: "System down",
     });
 
@@ -159,7 +159,7 @@ describe("Project Status API", () => {
       id: "1",
       name: "Active Project", // Name should not change
       owner_id: "test@example.com",
-      status: "outage",
+      status: "major_outage",
       message: "System down",
     });
   });

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     // Validate status value
     if (!validateServiceStatus(body.status)) {
       throw ApiErrors.BadRequest(
-        `Invalid status value. Must be one of: operational, degraded, outage, maintenance, unknown`
+        `Invalid status value. Must be one of: operational, degraded, major_outage, maintenance, unknown`
       );
     }
 

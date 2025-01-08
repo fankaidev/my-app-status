@@ -1,7 +1,7 @@
 export interface Project {
   id: string;
   name: string;
-  owner_id: string;  // GitHub user ID
+  owner_id: string; // GitHub user ID
   created_at: number;
   updated_at: number;
 }
@@ -10,7 +10,7 @@ export interface Project {
 export type ServiceStatus =
   | "operational" // Service is functioning normally
   | "degraded" // Service is experiencing some issues but still functioning
-  | "outage" // Service is completely down
+  | "major_outage" // Service is completely down
   | "maintenance" // Planned maintenance
   | "unknown"; // Status cannot be determined
 

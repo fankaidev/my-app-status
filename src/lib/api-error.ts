@@ -39,7 +39,7 @@ export const ApiErrors = {
   Forbidden: (message = "Access denied") => new ApiError(403, message),
 };
 
-export const ValidServiceStatus = ["operational", "degraded", "outage", "maintenance", "unknown"] as const;
+export const ValidServiceStatus = ["operational", "degraded", "major_outage", "maintenance", "unknown"] as const;
 
 export function validateServiceStatus(status: string): status is ServiceStatus {
   return ValidServiceStatus.includes(status as ServiceStatus);

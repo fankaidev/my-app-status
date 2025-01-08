@@ -55,7 +55,7 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
           const statusColor = {
             operational: "bg-green-500",
             degraded: "bg-yellow-500",
-            outage: "bg-red-500",
+            major_outage: "bg-red-500",
             maintenance: "bg-violet-400",
             unknown: "bg-gray-500",
           }[status.status];

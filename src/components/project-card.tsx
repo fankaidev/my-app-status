@@ -45,8 +45,8 @@ function getStatusColor(status: ServiceStatus): string {
       return "bg-green-500"; // Green for normal operation
     case "degraded":
       return "bg-yellow-500"; // Yellow for degraded performance
-    case "outage":
-      return "bg-red-500"; // Red for complete outage
+    case "major_outage":
+      return "bg-red-500"; // Red for complete major_outage
     case "maintenance":
       return "bg-violet-400"; // Bright violet for planned maintenance
     case "unknown":

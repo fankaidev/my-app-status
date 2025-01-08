@@ -21,7 +21,7 @@ curl https://my-app-status.pages.dev/api/projects
 {
   id: string;
   name: string;
-  status: "operational" | "degraded" | "outage" | "maintenance" | "unknown";
+  status: "operational" | "degraded" | "major_outage" | "maintenance" | "unknown";
   message?: string;
   created_at: number;
   updated_at: number;
@@ -54,7 +54,7 @@ curl https://my-app-status.pages.dev/api/projects/project-123
 {
   id: string;
   name: string;
-  status: "operational" | "degraded" | "outage" | "maintenance" | "unknown";
+  status: "operational" | "degraded" | "major_outage" | "maintenance" | "unknown";
   message?: string;
   created_at: number;
   updated_at: number;
@@ -128,7 +128,7 @@ curl -X POST https://my-app-status.pages.dev/api/projects/status \
 {
   id?: string;        // Project ID (optional if name is provided)
   name?: string;      // Project name (optional if id is provided)
-  status: "operational" | "degraded" | "outage" | "maintenance" | "unknown";
+  status: "operational" | "degraded" | "major_outage" | "maintenance" | "unknown";
   message?: string;   // Optional status message
 }
 ```
@@ -176,7 +176,7 @@ The following status values are supported:
 
 - `operational` - System is fully operational
 - `degraded` - System is experiencing minor issues
-- `outage` - System is completely down
+- `major_outage` - System is completely down
 - `maintenance` - System is under maintenance
 - `unknown` - System status is unknown
 
