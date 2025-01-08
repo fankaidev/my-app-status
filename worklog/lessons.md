@@ -6,6 +6,24 @@ When working with Cloudflare Pages and Next.js in edge runtime:
 2. This includes:
    - Custom API routes (`/api/projects`, `/api/hello`, etc.)
    - Auth.js routes (`/api/auth/[...nextauth]`)
+3. Use Web Crypto API instead of Node's crypto module:
+   ```typescript
+   // ❌ Wrong: Node's crypto module
+   import { createHash, randomBytes } from "crypto";
+   const hash = createHash("sha256").update(data).digest("hex");
+   const random = randomBytes(32).toString("hex");
+
+   // ✅ Correct: Web Crypto API
+   const encoder = new TextEncoder();
+   const data = encoder.encode(input);
+   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+   const hashArray = Array.from(new Uint8Array(hashBuffer));
+   const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+   const array = new Uint8Array(32);
+   crypto.getRandomValues(array);
+   const random = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+   ```
 
 ## Auth.js Configuration
 1. Must use JWT strategy in edge runtime
