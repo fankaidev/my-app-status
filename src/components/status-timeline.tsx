@@ -19,7 +19,7 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch(`/api/projects/${projectId}/history?limit=50`);
+        const response = await fetch(`/api/projects/${projectId}/history?limit=20`);
         if (!response.ok) {
           throw new Error("Failed to fetch status history");
         }
@@ -49,8 +49,8 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
 
   return (
     <div className="flex flex-col space-y-2">
-      <div className="flex flex-wrap items-start gap-y-2 gap-x-1">
-        {history.slice(-50).map((status) => {
+      <div className="flex items-start gap-y-2 gap-x-1 justify-between">
+        {history.map((status) => {
           const statusColor = {
             operational: "bg-green-500",
             degraded: "bg-yellow-500",
@@ -65,7 +65,7 @@ export function StatusTimeline({ projectId }: StatusTimelineProps) {
               className="group relative"
               title={`${status.status}${status.message ? `: ${status.message}` : ""}`}
             >
-              <div className={`w-3 h-6 ${statusColor} rounded cursor-pointer transition-all hover:w-4`}></div>
+              <div className={`w-2 h-6 ${statusColor} rounded cursor-pointer transition-all `}></div>
               <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
                 <div>{new Date(status.created_at * 1000).toLocaleString()}</div>
                 <div className="capitalize">{status.status.replace("_", " ")}</div>
