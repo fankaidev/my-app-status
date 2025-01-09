@@ -30,6 +30,7 @@ The following API endpoints are available:
 For detailed API documentation including request/response formats, parameters, and error handling, see [API Documentation](docs/api.md).
 
 ## Changelog
+
 1. Create project skeleton with basic status display
 2. Implement GitHub authentication with Auth.js
 3. Add public API for status updates
@@ -43,3 +44,4 @@ For detailed API documentation including request/response formats, parameters, a
 11. Add user token for updating project status
 12. Enhance project security with owner-based access
 13. Add status history timeline display
+14. Improve history UI with item limit and wrapping
