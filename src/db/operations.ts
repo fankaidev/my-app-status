@@ -1,5 +1,5 @@
 import { ApiErrors } from "@/lib/api-error";
-import { ProjectWithStatus, StatusHistory } from "@/types/db";
+import { Project, StatusHistory } from "@/types/db";
 
 /**
  * Get all projects with their latest status
@@ -7,7 +7,7 @@ import { ProjectWithStatus, StatusHistory } from "@/types/db";
 export async function getProjects(
   db: D1Database,
   options: { includeDeleted?: boolean; owner_id?: string } = {}
-): Promise<ProjectWithStatus[]> {
+): Promise<Project[]> {
   const conditions = [];
   const params = [];
 
@@ -23,25 +23,8 @@ export async function getProjects(
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   let stmt = db.prepare(`
-        SELECT
-            p.*,
-            sh.status,
-            sh.message,
-            sh.created_at as status_updated_at
+        SELECT p.*
         FROM projects p
-        LEFT JOIN (
-            SELECT
-                project_id,
-                status,
-                message,
-                created_at
-            FROM status_history sh1
-            WHERE id = (
-                SELECT MAX(id)
-                FROM status_history sh2
-                WHERE sh2.project_id = sh1.project_id
-            )
-        ) sh ON p.id = sh.project_id
         ${whereClause}
         ORDER BY p.name ASC
     `);
@@ -50,7 +33,7 @@ export async function getProjects(
     stmt = stmt.bind(...params);
   }
 
-  const { results } = await stmt.all<ProjectWithStatus>();
+  const { results } = await stmt.all<Project>();
   return results || [];
 }
 
@@ -61,7 +44,7 @@ export async function getProject(
   db: D1Database,
   id: string,
   options: { owner_id?: string } = {}
-): Promise<ProjectWithStatus | null> {
+): Promise<Project | null> {
   const conditions = ["p.id = ?"];
   const params = [id];
 
@@ -75,29 +58,16 @@ export async function getProject(
       `
         SELECT
             p.*,
-            sh.status,
-            sh.message,
-            sh.created_at as status_updated_at
+            p.latest_status as status,
+            NULL as message,
+            p.updated_at as status_updated_at
         FROM projects p
-        LEFT JOIN (
-            SELECT
-                project_id,
-                status,
-                message,
-                created_at
-            FROM status_history sh1
-            WHERE id = (
-                SELECT MAX(id)
-                FROM status_history sh2
-                WHERE sh2.project_id = sh1.project_id
-            )
-        ) sh ON p.id = sh.project_id
         WHERE ${conditions.join(" AND ")}
     `
     )
     .bind(...params);
 
-  const result = await stmt.first<ProjectWithStatus>();
+  const result = await stmt.first<Project>();
   return result || null;
 }
 
@@ -137,16 +107,17 @@ export async function updateProjectStatus(
     .bind(projectId, status, message || null, now)
     .run();
 
-  // Update project's updated_at timestamp
+  // Update project's updated_at and latest_status
   await db
     .prepare(
       `
         UPDATE projects
-        SET updated_at = ?
+        SET updated_at = ?,
+            latest_status = ?
         WHERE id = ?
     `
     )
-    .bind(now, projectId)
+    .bind(now, status, projectId)
     .run();
 }
 
@@ -181,35 +152,22 @@ export async function findProjectByName(
   db: D1Database,
   name: string,
   options: { owner_id: string }
-): Promise<ProjectWithStatus | null> {
+): Promise<Project | null> {
   const stmt = db
     .prepare(
       `
         SELECT
             p.*,
-            sh.status,
-            sh.message,
-            sh.created_at as status_updated_at
+            p.latest_status as status,
+            NULL as message,
+            p.updated_at as status_updated_at
         FROM projects p
-        LEFT JOIN (
-            SELECT
-                project_id,
-                status,
-                message,
-                created_at
-            FROM status_history sh1
-            WHERE id = (
-                SELECT MAX(id)
-                FROM status_history sh2
-                WHERE sh2.project_id = sh1.project_id
-            )
-        ) sh ON p.id = sh.project_id
         WHERE p.name = ? AND p.owner_id = ?
     `
     )
     .bind(name, options.owner_id);
 
-  return await stmt.first<ProjectWithStatus>();
+  return await stmt.first<Project>();
 }
 
 /**
@@ -222,8 +180,8 @@ export async function createProject(db: D1Database, name: string, owner_id: stri
   await db
     .prepare(
       `
-        INSERT INTO projects (id, name, owner_id, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO projects (id, name, owner_id, created_at, updated_at, latest_status)
+        VALUES (?, ?, ?, ?, ?, NULL)
     `
     )
     .bind(id, name, owner_id, now, now)
