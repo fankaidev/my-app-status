@@ -1,19 +1,9 @@
 "use client";
 import { ErrorMessages, fetchApi } from "@/lib/api-client";
-import { ServiceStatus } from "@/types/db";
+import { Project } from "@/types/project";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./project-card";
-
-interface Project {
-  id: string;
-  name: string;
-  status: ServiceStatus;
-  message?: string;
-  updated_at: number;
-  status_updated_at?: number;
-  owner_id: string;
-}
 
 export function ProjectList() {
   const { data: session, status } = useSession();

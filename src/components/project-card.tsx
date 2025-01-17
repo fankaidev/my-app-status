@@ -1,22 +1,13 @@
 import { ServiceStatus } from "@/types/db";
+import { Project } from "@/types/project";
 import { StatusTimeline } from "./status-timeline";
-
-interface Project {
-  id: string;
-  name: string;
-  status: ServiceStatus;
-  message?: string;
-  updated_at: number;
-  status_updated_at?: number;
-  owner_id: string;
-}
 
 interface ProjectCardProps {
   project: Project;
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
-  const statusColor = getStatusColor(project.status);
+  const statusColor = getStatusColor(project.latest_status || "unknown");
   const lastUpdateTime = formatTime(project.status_updated_at || project.updated_at);
 
   return (
@@ -28,7 +19,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className={`w-3 h-3 rounded-full ${statusColor}`} />
       </div>
       <div className="space-y-1">
-        <p className="text-sm text-gray-600 capitalize">{project.status}</p>
+        <p className="text-sm text-gray-600 capitalize">{project.latest_status}</p>
         {project.message && <p className="text-sm text-gray-500">{project.message}</p>}
         <p className="text-xs text-gray-400">Last updated {lastUpdateTime}</p>
       </div>
