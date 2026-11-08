@@ -54,3 +54,18 @@ Login is handled by Cloudflare Access in front of the site; the app has no login
 - `POST /api/projects/status` also accepts `Authorization: Bearer <token>`, so the Access application must bypass that path for reporters that can't log in.
 - Required env vars: `ACCESS_TEAM_DOMAIN` (e.g. `myteam.cloudflareaccess.com`) and `ACCESS_AUD` (the Access application's AUD tag).
 - Local dev: set `ACCESS_DEV_EMAIL=you@example.com` in `.env.local` to skip Access (ignored in production builds).
+
+## Development and build
+
+This project uses **pnpm** for everything (the version is pinned by `packageManager` in `package.json`, Node 22 via `.node-version`). Do not use npm or yarn, and do not commit `package-lock.json` or `yarn.lock`.
+
+```bash
+pnpm install        # install dependencies (commit pnpm-lock.yaml)
+pnpm dev            # local dev server on :3200
+pnpm test           # integration tests (real SQLite, no mocks of the DB)
+pnpm pages:build    # build for Cloudflare Pages
+```
+
+- `pnpm-workspace.yaml` lists which dependencies may run build scripts (`allowBuilds`).
+- Cloudflare Pages builds with `pnpm install` and `npx @cloudflare/next-on-pages@1`. The Pages project must use build system v3 so it ships a pnpm and Node new enough to read `pnpm-lock.yaml`.
+- Pushing to `main` deploys to production.
