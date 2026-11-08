@@ -1,47 +1,29 @@
-import { auth } from "@/auth";
+import { getAccessUser } from "@/lib/access";
 import { ApiErrors, handleApiError } from "@/lib/api-error";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-// List of public routes that don't require authentication
+// Routes that do their own authentication (or none at all).
+// Login itself is handled by Cloudflare Access in front of the app.
 const publicRoutes = [
-  "/", // Home page is public but will show login prompt for projects
-  "/api/auth/signin",
-  "/api/auth/signout",
-  "/api/auth/session",
-  "/api/auth/csrf",
-  "/api/auth/providers",
-  "/api/auth/callback",
-  "/api/auth/error",
-  "/api/projects", // Public GET endpoint
-  "/api/projects/status", // Public status update endpoint
+  "/", // Home page; the project list is loaded through the protected API
+  "/api/projects", // Handler checks the Access user itself
+  "/api/projects/status", // Accepts API tokens (Bearer) for reporting, bypasses Access
 ];
 
 export async function middleware(request: NextRequest) {
   try {
-    // Check if the route is public
-    const isPublicRoute = publicRoutes.some((route) => {
-      if (route.includes("*")) {
-        const pattern = new RegExp("^" + route.replace("*", "[^/]+") + "$");
-        return pattern.test(request.nextUrl.pathname);
-      }
-      return request.nextUrl.pathname === route;
-    });
-
+    const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
     if (isPublicRoute) {
       return NextResponse.next();
     }
 
-    // Check authentication
-    const session = await auth();
-    if (!session) {
-      // API routes return 401
+    const user = await getAccessUser(request.headers);
+    if (!user) {
       if (request.nextUrl.pathname.startsWith("/api/")) {
         throw ApiErrors.Unauthorized();
       }
-
-      // Other routes redirect to signin
-      return NextResponse.redirect(new URL("/api/auth/signin", request.url));
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     return NextResponse.next();
@@ -61,7 +43,7 @@ export const config = {
     "/admin/:path*",
     // Protected API routes
     "/api/projects/:path*",
-    // Exclude public routes and static assets
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|public/).*)",
+    // Exclude static assets
+    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
   ],
 };

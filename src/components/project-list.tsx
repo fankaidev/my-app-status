@@ -1,12 +1,12 @@
 "use client";
 import { ErrorMessages, fetchApi } from "@/lib/api-client";
 import { Project } from "@/types/project";
-import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./project-card";
+import { useUser } from "./use-user";
 
 export function ProjectList() {
-  const { data: session, status } = useSession();
+  const { status } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export function ProjectList() {
     }
 
     // Show unauthorized when not authenticated
-    if (!session) {
+    if (status === "unauthenticated") {
       setLoading(false);
       setError(ErrorMessages.UNAUTHORIZED);
       return;
@@ -41,7 +41,7 @@ export function ProjectList() {
     }
 
     loadProjects();
-  }, [session, status]);
+  }, [status]);
 
   if (loading) {
     return (
@@ -63,12 +63,9 @@ export function ProjectList() {
         </h3>
         <p className={`text-${isUnauthorized ? "yellow" : "red"}-700 mb-4`}>{error}</p>
         {isUnauthorized && (
-          <button
-            onClick={() => signIn("github")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200"
-          >
-            Sign in with GitHub
-          </button>
+          <a href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200">
+            Reload to sign in
+          </a>
         )}
       </div>
     );

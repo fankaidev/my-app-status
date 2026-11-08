@@ -1,5 +1,4 @@
 import { Header } from "@/components/header";
-import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -19,12 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-gray-50">
       <body className={`${inter.className} h-full`}>
-        <Providers>
-          <div className="min-h-full">
-            <Header />
-            {children}
-          </div>
-        </Providers>
+        <div className="min-h-full">
+          <Header />
+          {children}
+        </div>
       </body>
     </html>
   );

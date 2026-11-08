@@ -4,12 +4,11 @@ import { ProjectAdminList } from "@/components/project-admin-list";
 import { TokenList } from "@/components/token-list";
 import { fetchApi } from "@/lib/api-client";
 import { UserToken } from "@/lib/token-utils";
-import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useUser } from "@/components/use-user";
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
+  const { status } = useUser();
   const [tokens, setTokens] = useState<UserToken[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +28,8 @@ export default function AdminPage() {
     return <div>Loading...</div>;
   }
 
-  if (!session) {
-    redirect("/api/auth/signin");
+  if (status === "unauthenticated") {
+    return <div className="container mx-auto px-4 py-8">Authentication required. Please reload to sign in.</div>;
   }
 
   return (

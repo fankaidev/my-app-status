@@ -137,56 +137,17 @@ This project is a next.js project, intended to run in Cloudflare Pages. It is cr
 * this project will run in edge runtime, and the server should only use d1 database for data storage.
 
 # Auth
-Auth.js v5 will be used in this project to faciliate github login.
+Login is handled by Cloudflare Access in front of the site (no GitHub/Auth.js login).
 
-* All environment variable should starts with AUTH_, including AUTH_SECRET、AUTH_GITHUB_ID、AUTH_GITHUB_SECRET
-* the main auth config file is src/auth.js, should look like:
-    ```typescript
-    import NextAuth from "next-auth"
-    import GitHub from "next-auth/providers/github"
-
-    export const { auth, handlers, signIn, signOut } = NextAuth({
-        providers: [GitHub],
-        secret: process.env.AUTH_SECRET,
-        trustHost: true,
-        session: {
-            strategy: "jwt",  // Edge 环境必须使用 JWT
-        },
-    })
-    ```
-
-* API route src/app/api/auth/[...nextauth]/route.ts：
-    ```typescript
-    import { handlers } from "@/auth"
-    export const { GET, POST } = handlers
-    ```
-
+* Env vars: ACCESS_TEAM_DOMAIN, ACCESS_AUD. For `next dev`, ACCESS_DEV_EMAIL fakes a logged in user.
+* src/lib/access.ts verifies the `Cf-Access-Jwt-Assertion` JWT. Never trust `Cf-Access-Authenticated-User-Email` directly.
+* src/auth.ts exports `auth()` returning `{ user: { email } } | null`.
 * API auth in route：
-    * use auth() insteadof getServerSession()
     ```typescript
     const session = await auth()
-    if (!session) {
-        return new Response("Unauthorized", { status: 401 })
-    }
-
-    return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    ```
-
-* Provider config：
-    ```typescript
-    'use client'
-    import { SessionProvider } from "next-auth/react"
-
-    export function Providers({ children }: { children: React.ReactNode }) {
-        return <SessionProvider>{children}</SessionProvider>
+    if (!session?.user?.email) {
+        throw ApiErrors.Unauthorized()
     }
     ```
-
-
-
-
+* The UI gets the current user from `GET /api/me` (see `useUser()` in src/components/use-user.ts); sign out is `/cdn-cgi/access/logout`.
+* `POST /api/projects/status` accepts Bearer API tokens and is bypassed in Access.
