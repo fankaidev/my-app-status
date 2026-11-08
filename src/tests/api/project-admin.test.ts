@@ -3,7 +3,7 @@ import { GET as GET_LIST } from "@/app/api/projects/route";
 import { auth } from "@/auth";
 import { setTestDb } from "@/db";
 import { ApiError } from "@/lib/api-error";
-import { ProjectWithStatus } from "@/types/db";
+import { Project } from "@/types/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
 
@@ -12,7 +12,7 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
-interface ProjectRow extends ProjectWithStatus {
+interface ProjectRow extends Project {
   deleted: number;
 }
 
@@ -52,7 +52,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects");
         const response = await GET_LIST(request);
         expect(response.status).toBe(200);
-        const data = (await response.json()) as ProjectWithStatus[];
+        const data = (await response.json()) as Project[];
         expect(data.length).toBe(1);
         expect(data[0].id).toBe("1");
       });
@@ -61,7 +61,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects?include_deleted=true");
         const response = await GET_LIST(request);
         expect(response.status).toBe(200);
-        const data = (await response.json()) as ProjectWithStatus[];
+        const data = (await response.json()) as Project[];
         expect(data.length).toBe(2);
       });
     });
@@ -95,7 +95,7 @@ describe("Project Admin Operations", () => {
 
         // Verify through GET API
         const listResponse = await GET_LIST(new Request("http://localhost/api/projects?include_deleted=true"));
-        const projects = (await listResponse.json()) as (ProjectWithStatus & { deleted: number })[];
+        const projects = (await listResponse.json()) as (Project & { deleted: number })[];
         const deleted = projects.find((p) => p.id === "1");
         expect(deleted?.deleted).toBe(1);
       });
@@ -169,7 +169,7 @@ describe("Project Admin Operations", () => {
 
         // Verify through GET API
         const listResponse = await GET_LIST(new Request("http://localhost/api/projects"));
-        const projects = (await listResponse.json()) as (ProjectWithStatus & { deleted: number })[];
+        const projects = (await listResponse.json()) as (Project & { deleted: number })[];
         expect(projects.length).toBe(2); // Both projects are now active
         const restored = projects.find((p) => p.id === "2");
         expect(restored?.deleted).toBe(0);

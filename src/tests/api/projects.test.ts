@@ -3,7 +3,7 @@ import { GET } from "@/app/api/projects/route";
 import { auth } from "@/auth";
 import { setTestDb } from "@/db";
 import { ApiError } from "@/lib/api-error";
-import type { ProjectWithStatus } from "@/types/db";
+import type { Project } from "@/types/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanDb, createTestDb, seedTestData } from "../utils/test-db";
 
@@ -36,7 +36,7 @@ describe("Projects API", () => {
     it("should list active projects for authenticated user", async () => {
       const req = new Request("http://localhost/api/projects");
       const response = await GET(req);
-      const data = (await response.json()) as ProjectWithStatus[];
+      const data = (await response.json()) as Project[];
 
       expect(response.status).toBe(200);
       expect(Array.isArray(data)).toBe(true);
@@ -45,14 +45,14 @@ describe("Projects API", () => {
         id: "1",
         name: "Active Project",
         owner_id: "test@example.com",
-        status: "operational",
+        latest_status: "operational",
       });
     });
 
     it("should include deleted projects when requested", async () => {
       const req = new Request("http://localhost/api/projects?include_deleted=true");
       const response = await GET(req);
-      const data = (await response.json()) as ProjectWithStatus[];
+      const data = (await response.json()) as Project[];
 
       expect(response.status).toBe(200);
       expect(Array.isArray(data)).toBe(true);
@@ -66,7 +66,7 @@ describe("Projects API", () => {
     it("should handle invalid query parameters gracefully", async () => {
       const req = new Request("http://localhost/api/projects?invalid=true");
       const response = await GET(req);
-      const data = (await response.json()) as ProjectWithStatus[];
+      const data = (await response.json()) as Project[];
 
       expect(response.status).toBe(200);
       expect(Array.isArray(data)).toBe(true);
@@ -82,7 +82,7 @@ describe("Projects API", () => {
 
       const req = new Request("http://localhost/api/projects");
       const response = await GET(req);
-      const data = (await response.json()) as ProjectWithStatus[];
+      const data = (await response.json()) as Project[];
 
       expect(response.status).toBe(200);
       expect(Array.isArray(data)).toBe(true);
@@ -94,7 +94,7 @@ describe("Projects API", () => {
     it("should return project details for owner", async () => {
       const req = new Request("http://localhost/api/projects/1");
       const response = await GET_PROJECT(req, { params: { id: "1" } });
-      const data = (await response.json()) as ProjectWithStatus;
+      const data = (await response.json()) as Project;
 
       expect(response.status).toBe(200);
       expect(data).toMatchObject({
@@ -122,7 +122,7 @@ describe("Projects API", () => {
     it("should return deleted project when it exists and owned by user", async () => {
       const req = new Request("http://localhost/api/projects/2");
       const response = await GET_PROJECT(req, { params: { id: "2" } });
-      const data = (await response.json()) as ProjectWithStatus;
+      const data = (await response.json()) as Project;
 
       expect(response.status).toBe(200);
       expect(data).toMatchObject({

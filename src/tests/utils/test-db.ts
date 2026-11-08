@@ -1,18 +1,17 @@
 import Database from "better-sqlite3";
-import { readFileSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { resolve } from "path";
 
 // Create a new in-memory database for testing
 export function createTestDb() {
   const db = new Database(":memory:");
 
-  // Read and execute migration files
-  const migrations = [
-    readFileSync(resolve(process.cwd(), "migrations/0000_initial.sql"), "utf-8"),
-    readFileSync(resolve(process.cwd(), "migrations/0001_add_deleted_flag.sql"), "utf-8"),
-    readFileSync(resolve(process.cwd(), "migrations/03_add_owner_id.sql"), "utf-8"),
-    readFileSync(resolve(process.cwd(), "migrations/04_add_user_tokens.sql"), "utf-8"),
-  ];
+  // Read and execute every migration file in order, so the test schema always matches production
+  const migrationsDir = resolve(process.cwd(), "migrations");
+  const migrations = readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => readFileSync(resolve(migrationsDir, file), "utf-8"));
 
   // Execute each migration
   for (const migration of migrations) {
@@ -72,6 +71,7 @@ export function seedTestData(db: any) {
     updated_at: Date.now(),
     deleted: 0,
     status: "operational",
+    latest_status: "operational" as const,
     status_updated_at: Date.now(),
   };
 
@@ -83,12 +83,13 @@ export function seedTestData(db: any) {
     updated_at: Date.now(),
     deleted: 1,
     status: "operational",
+    latest_status: "operational" as const,
     status_updated_at: Date.now(),
   };
 
   // Insert project
   db.prepare(
-    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted, latest_status) VALUES (?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       activeProject.id,
@@ -96,12 +97,13 @@ export function seedTestData(db: any) {
       activeProject.owner_id,
       activeProject.created_at,
       activeProject.updated_at,
-      activeProject.deleted
+      activeProject.deleted,
+      activeProject.latest_status
     )
     .run();
 
   db.prepare(
-    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO projects (id, name, owner_id, created_at, updated_at, deleted, latest_status) VALUES (?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       deletedProject.id,
@@ -109,7 +111,8 @@ export function seedTestData(db: any) {
       deletedProject.owner_id,
       deletedProject.created_at,
       deletedProject.updated_at,
-      deletedProject.deleted
+      deletedProject.deleted,
+      deletedProject.latest_status
     )
     .run();
 

@@ -78,7 +78,6 @@ describe("Project Status API", () => {
       name: "Active Project",
       owner_id: "test@example.com",
       status: "operational",
-      message: "All systems operational",
     });
   });
 
@@ -105,7 +104,6 @@ describe("Project Status API", () => {
       name: "Active Project",
       owner_id: "test@example.com",
       status: "degraded",
-      message: "Performance issues",
     });
   });
 
@@ -132,7 +130,6 @@ describe("Project Status API", () => {
       name: "New Project",
       owner_id: "test@example.com",
       status: "maintenance",
-      message: "Scheduled maintenance",
     });
   });
 
@@ -160,7 +157,6 @@ describe("Project Status API", () => {
       name: "Active Project", // Name should not change
       owner_id: "test@example.com",
       status: "major_outage",
-      message: "System down",
     });
   });
 
