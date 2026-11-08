@@ -3,28 +3,13 @@ import { ErrorMessages, fetchApi } from "@/lib/api-client";
 import { Project } from "@/types/project";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./project-card";
-import { useUser } from "./use-user";
 
 export function ProjectList() {
-  const { status } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only show loading when session is loading
-    if (status === "loading") {
-      setLoading(true);
-      return;
-    }
-
-    // Show unauthorized when not authenticated
-    if (status === "unauthenticated") {
-      setLoading(false);
-      setError(ErrorMessages.UNAUTHORIZED);
-      return;
-    }
-
     async function loadProjects() {
       const result = await fetchApi<Project[]>("/api/projects");
 
@@ -41,7 +26,7 @@ export function ProjectList() {
     }
 
     loadProjects();
-  }, [status]);
+  }, []);
 
   if (loading) {
     return (
@@ -52,21 +37,10 @@ export function ProjectList() {
   }
 
   if (error) {
-    const isUnauthorized = error === ErrorMessages.UNAUTHORIZED;
     return (
-      <div
-        className={`bg-${isUnauthorized ? "yellow" : "red"}-50 border border-${isUnauthorized ? "yellow" : "red"
-          }-200 rounded-lg p-8 text-center`}
-      >
-        <h3 className={`text-lg font-medium text-${isUnauthorized ? "yellow" : "red"}-900 mb-2`}>
-          {isUnauthorized ? "Authentication Required" : "Error"}
-        </h3>
-        <p className={`text-${isUnauthorized ? "yellow" : "red"}-700 mb-4`}>{error}</p>
-        {isUnauthorized && (
-          <a href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200">
-            Reload to sign in
-          </a>
-        )}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+        <h3 className="text-lg font-medium text-red-900 mb-2">Error</h3>
+        <p className="text-red-700">{error}</p>
       </div>
     );
   }

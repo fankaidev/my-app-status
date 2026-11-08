@@ -52,7 +52,8 @@ Login is handled by Cloudflare Access in front of the site; the app has no login
 
 - Access adds a signed JWT in the `Cf-Access-Jwt-Assertion` header. `src/lib/access.ts` verifies it (signature, issuer, audience, expiry) and `auth()` returns `{ user: { email } }`. Requests without a valid JWT are treated as unauthenticated.
 - `POST /api/projects/status` also accepts `Authorization: Bearer <token>`, so the Access application must bypass that path for reporters that can't log in.
-- Required env vars: `ACCESS_TEAM_DOMAIN` (e.g. `myteam.cloudflareaccess.com`) and `ACCESS_AUD` (the Access application's AUD tag).
+- Required vars: `ACCESS_TEAM_DOMAIN` (e.g. `myteam.cloudflareaccess.com`) and `ACCESS_AUD` (the Access application's AUD tag). They are set in `[vars]` in `wrangler.toml`: when that file exists, Pages ignores variables configured in the dashboard. They are identifiers, not secrets.
+- The UI has no signed-out state: Access guards the whole site, and `GET /api/me` only supplies the email shown in the header.
 - Local dev: set `ACCESS_DEV_EMAIL=you@example.com` in `.env.local` to skip Access (ignored in production builds).
 
 ## Development and build

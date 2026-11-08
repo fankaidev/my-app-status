@@ -4,11 +4,9 @@ import { ProjectAdminList } from "@/components/project-admin-list";
 import { TokenList } from "@/components/token-list";
 import { fetchApi } from "@/lib/api-client";
 import { UserToken } from "@/lib/token-utils";
-import { useUser } from "@/components/use-user";
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
-  const { status } = useUser();
   const [tokens, setTokens] = useState<UserToken[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,12 +22,8 @@ export default function AdminPage() {
     loadTokens();
   }, []);
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (status === "unauthenticated") {
-    return <div className="container mx-auto px-4 py-8">Authentication required. Please reload to sign in.</div>;
   }
 
   return (

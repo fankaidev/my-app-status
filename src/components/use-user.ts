@@ -2,32 +2,26 @@
 
 import { useEffect, useState } from "react";
 
-export type UserStatus = "loading" | "authenticated" | "unauthenticated";
-
 /**
- * Who is logged in through Cloudflare Access (login itself is handled by Access, not by this app).
+ * The user Cloudflare Access let in. Access guards the whole site, so there is no signed-out state to handle here;
+ * the email is only used for display.
  */
-export function useUser(): { email: string | null; status: UserStatus } {
-  const [state, setState] = useState<{ email: string | null; status: UserStatus }>({
-    email: null,
-    status: "loading",
-  });
+export function useUser(): { email: string | null } {
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/me")
       .then(async (res) => {
-        if (!res.ok) throw new Error(String(res.status));
+        if (!res.ok) return;
         const data = (await res.json()) as { email: string };
-        if (!cancelled) setState({ email: data.email, status: "authenticated" });
+        if (!cancelled) setEmail(data.email);
       })
-      .catch(() => {
-        if (!cancelled) setState({ email: null, status: "unauthenticated" });
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return state;
+  return { email };
 }

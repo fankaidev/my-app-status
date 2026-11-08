@@ -10,3 +10,9 @@ binding = "DB"
 database_name = "app-status-db"
 database_id = "6d034d3a-e2d3-4077-a49f-4077127cec7a"
 preview_database_id = "6d034d3a-e2d3-4077-a49f-4077127cec7a"
+
+# Cloudflare Access (login). Not secrets: the team domain and the application's AUD tag are public identifiers.
+# With a wrangler.toml present, Pages ignores variables set in the dashboard, so they must live here.
+[vars]
+ACCESS_TEAM_DOMAIN = "fklj.cloudflareaccess.com"
+ACCESS_AUD = "2c30010cce7653df979febc60c040ff6ed82432e597fc55f71f896d7437fee93"
