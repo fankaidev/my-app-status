@@ -70,3 +70,14 @@ pnpm pages:build    # build for Cloudflare Pages
 - `pnpm-workspace.yaml` lists which dependencies may run build scripts (`allowBuilds`).
 - Cloudflare Pages builds with `pnpm install` and `npx @cloudflare/next-on-pages@1`. The Pages project must use build system v3 so it ships a pnpm and Node new enough to read `pnpm-lock.yaml`.
 - Pushing to `main` deploys to production.
+
+### Version limits
+
+Some dependencies are intentionally not on their latest major:
+
+- `next` is pinned to 15.5.2 and `vercel` to 47.0.4: `@cloudflare/next-on-pages` (deprecated upstream in favour of OpenNext) only supports `next <= 15.5.2` and `vercel <= 47.0.4`. Going beyond that means migrating to the OpenNext Cloudflare adapter.
+- `@cloudflare/workers-types` stays on 4.x for the same reason (peer range).
+- `eslint` stays on 9 because `eslint-config-next` 15 does not support 10 yet.
+- `tailwindcss` stays on 3.x; v4 needs a config migration.
+- `typescript` stays on 5.x; Next 15 does not support TypeScript 7.
+- `@types/node` follows the Node version in `.node-version` (22).

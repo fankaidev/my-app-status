@@ -12,11 +12,6 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(() => Promise.resolve({ user: { email: "test@example.com" } })),
 }));
 
-interface ErrorResponse {
-  error: {
-    message: string;
-  };
-}
 
 describe("Projects API", () => {
   let db: any;
@@ -93,7 +88,7 @@ describe("Projects API", () => {
   describe("GET /api/projects/[id]", () => {
     it("should return project details for owner", async () => {
       const req = new Request("http://localhost/api/projects/1");
-      const response = await GET_PROJECT(req, { params: { id: "1" } });
+      const response = await GET_PROJECT(req, { params: Promise.resolve({ id: "1" }) });
       const data = (await response.json()) as Project;
 
       expect(response.status).toBe(200);
@@ -108,7 +103,7 @@ describe("Projects API", () => {
     it("should return 404 for non-existent project", async () => {
       const req = new Request("http://localhost/api/projects/999");
       try {
-        const response = await GET_PROJECT(req, { params: { id: "999" } });
+        const response = await GET_PROJECT(req, { params: Promise.resolve({ id: "999" }) });
         expect(response.status).toBe(404);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -121,7 +116,7 @@ describe("Projects API", () => {
 
     it("should return deleted project when it exists and owned by user", async () => {
       const req = new Request("http://localhost/api/projects/2");
-      const response = await GET_PROJECT(req, { params: { id: "2" } });
+      const response = await GET_PROJECT(req, { params: Promise.resolve({ id: "2" }) });
       const data = (await response.json()) as Project;
 
       expect(response.status).toBe(200);
@@ -136,7 +131,7 @@ describe("Projects API", () => {
     it("should handle invalid project IDs gracefully", async () => {
       const req = new Request("http://localhost/api/projects/invalid-id");
       try {
-        const response = await GET_PROJECT(req, { params: { id: "invalid-id" } });
+        const response = await GET_PROJECT(req, { params: Promise.resolve({ id: "invalid-id" }) });
         expect(response.status).toBe(404);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -155,7 +150,7 @@ describe("Projects API", () => {
 
       const req = new Request("http://localhost/api/projects/1");
       try {
-        const response = await GET_PROJECT(req, { params: { id: "1" } });
+        const response = await GET_PROJECT(req, { params: Promise.resolve({ id: "1" }) });
         expect(response.status).toBe(404);
       } catch (error) {
         if (error instanceof ApiError) {

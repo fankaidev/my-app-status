@@ -5,7 +5,7 @@ import { ApiError, ApiErrors } from "@/lib/api-error";
 export const runtime = "edge";
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/projects/[id]/history
@@ -16,7 +16,7 @@ export async function GET(request: Request, context: RouteContext) {
       throw ApiErrors.Unauthorized();
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "20");
 

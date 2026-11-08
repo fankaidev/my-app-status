@@ -10,7 +10,7 @@ interface CreateTokenRequest {
 }
 
 // GET /api/tokens - List all tokens for current user
-export async function GET(request: Request) {
+export async function GET() {
     try {
         const session = await auth();
         if (!session?.user?.email) {

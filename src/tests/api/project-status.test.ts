@@ -21,11 +21,6 @@ interface SuccessResponse {
   projectId?: string;
 }
 
-interface ErrorResponse {
-  error: {
-    message: string;
-  };
-}
 
 describe("Project Status API", () => {
   let db: any;
@@ -69,7 +64,7 @@ describe("Project Status API", () => {
 
     // Verify through GET API
     const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
-      params: { id: "1" },
+      params: Promise.resolve({ id: "1" }),
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
@@ -95,7 +90,7 @@ describe("Project Status API", () => {
 
     // Verify through GET API
     const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
-      params: { id: "1" },
+      params: Promise.resolve({ id: "1" }),
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
@@ -121,7 +116,7 @@ describe("Project Status API", () => {
 
     // Verify through GET API
     const getResponse = await GET_PROJECT(new Request(`http://localhost/api/projects/${data.projectId}`), {
-      params: { id: data.projectId! },
+      params: Promise.resolve({ id: data.projectId! }),
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();
@@ -148,7 +143,7 @@ describe("Project Status API", () => {
 
     // Verify through GET API
     const getResponse = await GET_PROJECT(new Request("http://localhost/api/projects/1"), {
-      params: { id: "1" },
+      params: Promise.resolve({ id: "1" }),
     });
     expect(getResponse.status).toBe(200);
     const project = await getResponse.json();

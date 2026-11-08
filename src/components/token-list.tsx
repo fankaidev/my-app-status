@@ -111,7 +111,7 @@ export function TokenList({ initialTokens = [] }: TokenListProps) {
                                     <div className="mt-2 text-sm text-blue-700">
                                         <p className="font-mono break-all">{newToken.token}</p>
                                         <p className="mt-2 text-blue-800 font-medium">
-                                            Make sure to copy this token now. You won't be able to see it
+                                            Make sure to copy this token now. You won&apos;t be able to see it
                                             again!
                                         </p>
                                     </div>

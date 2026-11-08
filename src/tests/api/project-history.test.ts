@@ -41,7 +41,7 @@ describe("Project History API", () => {
 
       const req = new Request("http://localhost/api/projects/1/history");
       try {
-        await GET(req, { params: { id: "1" } });
+        await GET(req, { params: Promise.resolve({ id: "1" }) });
         throw new Error("Expected error not thrown");
       } catch (error) {
         if (error instanceof ApiError) {
@@ -55,7 +55,7 @@ describe("Project History API", () => {
     it("should return 404 for non-existent project", async () => {
       const req = new Request("http://localhost/api/projects/999/history");
       try {
-        await GET(req, { params: { id: "999" } });
+        await GET(req, { params: Promise.resolve({ id: "999" }) });
         throw new Error("Expected error not thrown");
       } catch (error) {
         if (error instanceof ApiError) {
@@ -75,7 +75,7 @@ describe("Project History API", () => {
 
       const req = new Request("http://localhost/api/projects/1/history");
       try {
-        await GET(req, { params: { id: "1" } });
+        await GET(req, { params: Promise.resolve({ id: "1" }) });
         throw new Error("Expected error not thrown");
       } catch (error) {
         if (error instanceof ApiError) {
@@ -88,7 +88,7 @@ describe("Project History API", () => {
 
     it("should return more history after set status", async () => {
       const req = new Request("http://localhost/api/projects/1/history");
-      const response = await GET(req, { params: { id: "1" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "1" }) });
       const data = (await response.json()) as { history: StatusHistory[] };
 
       expect(response.status).toBe(200);
@@ -106,7 +106,7 @@ describe("Project History API", () => {
       expect(response2.status).toBe(200);
 
       const req3 = new Request("http://localhost/api/projects/1/history");
-      const response3 = await GET(req3, { params: { id: "1" } });
+      const response3 = await GET(req3, { params: Promise.resolve({ id: "1" }) });
       const data3 = (await response3.json()) as { history: StatusHistory[] };
       const newHistory = data3.history;
 

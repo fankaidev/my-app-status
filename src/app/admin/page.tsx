@@ -12,7 +12,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const loadTokens = async () => {
-      const { data, error } = await fetchApi<UserToken[]>("/api/tokens");
+      const { data } = await fetchApi<UserToken[]>("/api/tokens");
       if (data) {
         setTokens(data);
       }

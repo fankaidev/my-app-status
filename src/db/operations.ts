@@ -202,7 +202,7 @@ export async function updateProjectStatusByName(
   message?: string
 ): Promise<string> {
   // First try to find project by name
-  let project = await findProjectByName(db, name, { owner_id });
+  const project = await findProjectByName(db, name, { owner_id });
   let projectId: string;
 
   if (!project) {

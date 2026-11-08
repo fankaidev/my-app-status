@@ -14,8 +14,8 @@ import {
 // Add test database support
 let testDb: D1Database | null = null;
 
-export function setTestDb(db: any) {
-  testDb = db;
+export function setTestDb(db: unknown) {
+  testDb = db as D1Database | null;
 }
 
 export async function getDB(): Promise<D1Database> {

@@ -12,25 +12,15 @@ vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));
 
-interface ProjectRow extends Project {
-  deleted: number;
-}
-
-interface ErrorResponse {
-  error: {
-    message: string;
-  };
-}
 
 describe("Project Admin Operations", () => {
   let db: any;
   let mockSession: any;
-  let testData: { activeProject: ProjectRow; deletedProject: ProjectRow };
 
   beforeEach(() => {
     db = createTestDb();
     setTestDb(db);
-    testData = seedTestData(db) as { activeProject: ProjectRow; deletedProject: ProjectRow };
+    seedTestData(db);
     mockSession = {
       user: {
         email: "test@example.com",
@@ -72,7 +62,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/1", {
           method: "DELETE",
         });
-        const context = { params: { id: "1" } };
+        const context = { params: Promise.resolve({ id: "1" }) };
         try {
           const response = await DELETE(request, context);
           expect(response.status).toBe(401);
@@ -89,7 +79,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/1", {
           method: "DELETE",
         });
-        const context = { params: { id: "1" } };
+        const context = { params: Promise.resolve({ id: "1" }) };
         const response = await DELETE(request, context);
         expect(response.status).toBe(200);
 
@@ -104,7 +94,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/999", {
           method: "DELETE",
         });
-        const context = { params: { id: "999" } };
+        const context = { params: Promise.resolve({ id: "999" }) };
         try {
           const response = await DELETE(request, context);
           expect(response.status).toBe(404);
@@ -126,7 +116,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/1", {
           method: "DELETE",
         });
-        const context = { params: { id: "1" } };
+        const context = { params: Promise.resolve({ id: "1" }) };
         try {
           const response = await DELETE(request, context);
           expect(response.status).toBe(404);
@@ -146,7 +136,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/2", {
           method: "PATCH",
         });
-        const context = { params: { id: "2" } };
+        const context = { params: Promise.resolve({ id: "2" }) };
         try {
           const response = await PATCH(request, context);
           expect(response.status).toBe(401);
@@ -163,7 +153,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/2", {
           method: "PATCH",
         });
-        const context = { params: { id: "2" } };
+        const context = { params: Promise.resolve({ id: "2" }) };
         const response = await PATCH(request, context);
         expect(response.status).toBe(200);
 
@@ -179,7 +169,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/999", {
           method: "PATCH",
         });
-        const context = { params: { id: "999" } };
+        const context = { params: Promise.resolve({ id: "999" }) };
         try {
           const response = await PATCH(request, context);
           expect(response.status).toBe(404);
@@ -196,7 +186,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/1", {
           method: "PATCH",
         });
-        const context = { params: { id: "1" } };
+        const context = { params: Promise.resolve({ id: "1" }) };
         try {
           const response = await PATCH(request, context);
           expect(response.status).toBe(400);
@@ -218,7 +208,7 @@ describe("Project Admin Operations", () => {
         const request = new Request("http://localhost/api/projects/2", {
           method: "PATCH",
         });
-        const context = { params: { id: "2" } };
+        const context = { params: Promise.resolve({ id: "2" }) };
         try {
           const response = await PATCH(request, context);
           expect(response.status).toBe(404);

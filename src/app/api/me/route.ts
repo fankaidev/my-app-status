@@ -7,7 +7,7 @@ export const runtime = "edge";
 // Returns the user identified by Cloudflare Access. Used by the UI to show who is logged in.
 // On failure the response includes a fixed reason code (never token contents) to make misconfiguration visible.
 export async function GET() {
-  const { user, reason } = await checkAccessJwt(headers().get("Cf-Access-Jwt-Assertion"));
+  const { user, reason } = await checkAccessJwt((await headers()).get("Cf-Access-Jwt-Assertion"));
   if (!user) {
     return NextResponse.json(
       { error: { message: "Authentication required", code: "UNAUTHORIZED", reason } },

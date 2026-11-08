@@ -164,5 +164,5 @@ export async function revokeToken(db: D1Database, id: string, user_id: string): 
     .run();
 
   // Handle both D1 and test database result formats
-  return (result.success && result.meta?.changes === 1) || (result as any).changes === 1;
+  return (result.success && result.meta?.changes === 1) || (result as { changes?: number }).changes === 1;
 }

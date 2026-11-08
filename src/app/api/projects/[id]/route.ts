@@ -5,12 +5,12 @@ import { ApiError, ApiErrors } from "@/lib/api-error";
 export const runtime = "edge";
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/projects/[id]
 export async function GET(request: Request, context: RouteContext) {
-  const { id } = context.params;
+  const { id } = await context.params;
 
   try {
     const session = await auth();
@@ -42,7 +42,7 @@ export async function DELETE(request: Request, context: RouteContext) {
       throw ApiErrors.Unauthorized();
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const db = await getDB();
 
     // Check ownership before deletion
@@ -70,7 +70,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       throw ApiErrors.Unauthorized();
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const db = await getDB();
 
     // Check ownership before restoration

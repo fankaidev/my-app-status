@@ -23,7 +23,7 @@ export function ProjectAdminList() {
         setProjects(data as Project[]);
         setIsLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         setError("Failed to load projects");
         setIsLoading(false);
       });
@@ -42,7 +42,7 @@ export function ProjectAdminList() {
       // Update local state
       setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, deleted: true } : p)));
       router.refresh();
-    } catch (err) {
+    } catch {
       setError("Failed to delete project");
     }
   };
@@ -60,7 +60,7 @@ export function ProjectAdminList() {
       // Update local state
       setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, deleted: false } : p)));
       router.refresh();
-    } catch (err) {
+    } catch {
       setError("Failed to restore project");
     }
   };

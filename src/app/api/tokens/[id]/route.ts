@@ -6,7 +6,7 @@ import { revokeToken } from "@/lib/token-utils";
 export const runtime = "edge";
 
 interface RouteContext {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 // DELETE /api/tokens/[id] - Revoke a token
@@ -17,7 +17,7 @@ export async function DELETE(request: Request, context: RouteContext) {
             throw ApiErrors.Unauthorized();
         }
 
-        const { id } = context.params;
+        const { id } = await context.params;
         const db = await getDB();
 
         const success = await revokeToken(db, id, session.user.email);

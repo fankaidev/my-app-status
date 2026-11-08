@@ -21,7 +21,6 @@ type MockSession = {
 describe("Token Management API", () => {
     let db: any;
     let mockSession: MockSession;
-    let testToken: UserToken;
     let testTokenId: string;
     let testTokenValue: string;
 
@@ -43,7 +42,7 @@ describe("Token Management API", () => {
         testTokenValue = generateToken();
         const hashedToken = await hashToken(testTokenValue);
 
-        const result = await db
+        await db
             .prepare(
                 `INSERT INTO user_tokens (id, user_id, token, name, created_at)
          VALUES (?, ?, ?, ?, unixepoch())
@@ -51,7 +50,6 @@ describe("Token Management API", () => {
             )
             .bind(testTokenId, "test@example.com", hashedToken, "Test Token")
             .first();
-        testToken = result as UserToken;
     });
 
     afterEach(() => {
@@ -64,7 +62,7 @@ describe("Token Management API", () => {
             vi.mocked(auth).mockResolvedValueOnce(null);
 
             try {
-                await GET(new Request("http://localhost/api/tokens"));
+                await GET();
             } catch (error) {
                 if (error instanceof ApiError) {
                     expect(error.statusCode).toBe(401);
@@ -75,7 +73,7 @@ describe("Token Management API", () => {
         });
 
         it("should list user's tokens", async () => {
-            const response = await GET(new Request("http://localhost/api/tokens"));
+            const response = await GET();
             const tokens = (await response.json()) as UserToken[];
 
             expect(response.status).toBe(200);
@@ -95,7 +93,7 @@ describe("Token Management API", () => {
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             } as any);
 
-            const response = await GET(new Request("http://localhost/api/tokens"));
+            const response = await GET();
             const tokens = (await response.json()) as UserToken[];
 
             expect(response.status).toBe(200);
@@ -170,7 +168,7 @@ describe("Token Management API", () => {
                     new Request(`http://localhost/api/tokens/${testTokenId}`, {
                         method: "DELETE",
                     }),
-                    { params: { id: testTokenId } }
+                    { params: Promise.resolve({ id: testTokenId }) }
                 );
             } catch (error) {
                 if (error instanceof ApiError) {
@@ -186,7 +184,7 @@ describe("Token Management API", () => {
                 new Request(`http://localhost/api/tokens/${testTokenId}`, {
                     method: "DELETE",
                 }),
-                { params: { id: testTokenId } }
+                { params: Promise.resolve({ id: testTokenId }) }
             );
 
             expect(response.status).toBe(200);
@@ -211,7 +209,7 @@ describe("Token Management API", () => {
                     new Request(`http://localhost/api/tokens/${testTokenId}`, {
                         method: "DELETE",
                     }),
-                    { params: { id: testTokenId } }
+                    { params: Promise.resolve({ id: testTokenId }) }
                 );
             } catch (error) {
                 if (error instanceof ApiError) {
@@ -235,7 +233,7 @@ describe("Token Management API", () => {
                     new Request("http://localhost/api/tokens/non-existent", {
                         method: "DELETE",
                     }),
-                    { params: { id: "non-existent" } }
+                    { params: Promise.resolve({ id: "non-existent" }) }
                 );
             } catch (error) {
                 if (error instanceof ApiError) {
