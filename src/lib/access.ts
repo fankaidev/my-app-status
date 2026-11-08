@@ -72,19 +72,44 @@ interface JwtPayload {
  * Verify an Access JWT and return the user it identifies, or null if it is missing/invalid.
  */
 export async function verifyAccessJwt(token: string | null | undefined): Promise<AccessUser | null> {
+  return (await checkAccessJwt(token)).user;
+}
+
+export type AccessFailure =
+  | "no-team-domain-env"
+  | "no-aud-env"
+  | "no-jwt-header"
+  | "malformed-jwt"
+  | "unsupported-alg"
+  | "key-not-found"
+  | "bad-signature"
+  | "expired"
+  | "not-yet-valid"
+  | "bad-issuer"
+  | "bad-audience"
+  | "no-email"
+  | "error";
+
+/**
+ * Like verifyAccessJwt, but says why verification failed. The reason is a fixed code, never token contents.
+ */
+export async function checkAccessJwt(
+  token: string | null | undefined
+): Promise<{ user: AccessUser | null; reason?: AccessFailure }> {
+  const fail = (reason: AccessFailure) => ({ user: null, reason });
   const teamDomain = process.env.ACCESS_TEAM_DOMAIN;
   const expectedAud = process.env.ACCESS_AUD;
-  if (!token || !teamDomain || !expectedAud) {
-    return null;
-  }
+  if (!teamDomain) return fail("no-team-domain-env");
+  if (!expectedAud) return fail("no-aud-env");
+  if (!token) return fail("no-jwt-header");
 
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) return fail("malformed-jwt");
     const [headerPart, payloadPart, signaturePart] = parts;
 
     const header = decodeJson<{ alg?: string; kid?: string }>(headerPart);
-    if (header.alg !== "RS256" || !header.kid) return null;
+    if (header.alg !== "RS256" || !header.kid) return fail("unsupported-alg");
 
     let keys = await getKeys(teamDomain);
     let jwk = keys.find((k) => k.kid === header.kid);
@@ -93,7 +118,7 @@ export async function verifyAccessJwt(token: string | null | undefined): Promise
       keys = await getKeys(teamDomain, true);
       jwk = keys.find((k) => k.kid === header.kid);
     }
-    if (!jwk) return null;
+    if (!jwk) return fail("key-not-found");
 
     const key = await crypto.subtle.importKey(
       "jwk",
@@ -105,25 +130,25 @@ export async function verifyAccessJwt(token: string | null | undefined): Promise
     const valid = await crypto.subtle.verify(
       "RSASSA-PKCS1-v1_5",
       key,
-      base64UrlToBytes(signaturePart),
+      base64UrlToBytes(signaturePart) as BufferSource,
       new TextEncoder().encode(`${headerPart}.${payloadPart}`)
     );
-    if (!valid) return null;
+    if (!valid) return fail("bad-signature");
 
     const payload = decodeJson<JwtPayload>(payloadPart);
     const nowSec = Math.floor(Date.now() / 1000);
-    if (typeof payload.exp !== "number" || payload.exp <= nowSec) return null;
-    if (typeof payload.nbf === "number" && payload.nbf > nowSec) return null;
-    if (payload.iss !== `https://${teamDomain}`) return null;
+    if (typeof payload.exp !== "number" || payload.exp <= nowSec) return fail("expired");
+    if (typeof payload.nbf === "number" && payload.nbf > nowSec) return fail("not-yet-valid");
+    if (payload.iss !== `https://${teamDomain}`) return fail("bad-issuer");
 
     const aud = Array.isArray(payload.aud) ? payload.aud : payload.aud ? [payload.aud] : [];
-    if (!aud.includes(expectedAud)) return null;
+    if (!aud.includes(expectedAud)) return fail("bad-audience");
 
-    if (!payload.email) return null;
-    return { email: payload.email };
+    if (!payload.email) return fail("no-email");
+    return { user: { email: payload.email } };
   } catch (error) {
     console.error("Access JWT verification failed:", error);
-    return null;
+    return fail("error");
   }
 }
 

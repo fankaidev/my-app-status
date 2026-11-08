@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 // Login itself is handled by Cloudflare Access in front of the app.
 const publicRoutes = [
   "/", // Home page; the project list is loaded through the protected API
+  "/api/me", // Handler checks the Access user itself and reports why it failed
   "/api/projects", // Handler checks the Access user itself
   "/api/projects/status", // Accepts API tokens (Bearer) for reporting, bypasses Access
 ];
